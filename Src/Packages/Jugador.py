@@ -1,4 +1,4 @@
-from Carta import Carta
+from Src.Packages.Carta import Carta
 class Jugador:                              # PD: Luego hay que crear la clase usuario y jugador heredará de usuario
     def __init__(self):                     ### Método para inicializar un jugador ###
         self.__mano = []

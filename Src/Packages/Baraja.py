@@ -1,4 +1,4 @@
-from Carta import Carta
+from Src.Packages.Carta import Carta
 
 class Baraja:
     def __init__(self):             ### Método para creación de una baraja ###

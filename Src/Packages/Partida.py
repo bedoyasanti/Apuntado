@@ -1,6 +1,6 @@
 from random import choice
-from Baraja import Baraja
-from Jugador import Jugador
+from Src.Packages.Baraja import Baraja
+from Src.Packages.Jugador import Jugador
 
 class Partida:
     def __init__(self, turnos):                     ### Método para crear una partida ###

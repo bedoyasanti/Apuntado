@@ -19,13 +19,23 @@ class Partida:
             jugador : Jugador = self.__turnos[i]# Se itera sobre los turnos de jugadores, dada la prioridad
             while True:
                 if len(jugador.getMano()) == 10:# Si el jugador ya tiene 10 cartas en su mano, se rompe el ciclo
-                    break                       # para continuar con el siguiente jugador
-
-                if first:                                       # En caso de que sea el primer jugador, se le dará primero la carta 11,
+                    if first:
+                        while True:
+                            carta11 = choice(self.__baraja.getBaraja())
+                            if self.__mazo[carta11] > 0:
+                                jugador.añadirCarta(carta11)
+                                self.__mazo[carta11] -= 1
+                                first = False
+                                break
+                    break
+                
+                #no entendí :(
+                '''if first:                                       # En caso de que sea el primer jugador, se le dará primero la carta 11,
                     carta11 = choice(self.__baraja.getBaraja()) # es decir, la carta que se le da de más al jugador que comienza la partida
                     jugador.setCartaTirada(carta11)             # pero se le entrega como si fuera una carta que le tiraron por facilidad de la programación :)
                     self.__mazo[carta11] -= 1                   # y se actualiza el mazo de la partida
-                    first = False                               # También se actualiza el controlador del primer jugador
+                    #first = False                               # También se actualiza el controlador del primer jugador
+                    jugador.añadirCarta(carta11)'''
 
                 carta = choice(self.__baraja.getBaraja())   # Se escoge una carta al azar de una baraja
                 if self.__mazo[carta] > 0:                  # Si la carta está disponible en el mazo, es decir si aún hay al menos una carta (en el mazo) de la escogida en una baraja

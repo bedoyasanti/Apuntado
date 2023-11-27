@@ -1,6 +1,10 @@
 from Src.Packages.Carta import Carta
 class Jugador:                              # PD: Luego hay que crear la clase usuario y jugador heredará de usuario
-    def __init__(self):                     ### Método para inicializar un jugador ###
+    contador_jugadores = 0  # Variable de clase para contar jugadores
+
+    def __init__(self):
+        Jugador.contador_jugadores += 1  # Incrementar el contador de jugadores al crear una instancia
+        self.__numero_jugador = Jugador.contador_jugadores  # Asignar el número de jugador restando 1 para empezar desde 0
         self.__mano = []
         self.__cartaTirada = None
         self.__cartaPorTirar = None
@@ -8,6 +12,9 @@ class Jugador:                              # PD: Luego hay que crear la clase u
         self.__cartaTocar2 = None
         self.__puntos = 0
 
+    def getnumJugador(self):
+        return self.__numero_jugador
+    
     def añadirCarta(self, carta: Carta):    ### Método para añadir una carta a la mano ###
         self.__mano.append(carta)
     

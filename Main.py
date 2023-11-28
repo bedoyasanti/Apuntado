@@ -2,9 +2,10 @@ import tkinter as tk
 from tkinter import *
 from PIL import ImageTk
 from PIL import Image
-from Src.Packages.Baraja import Baraja
 from Src.Packages.Juego import Juego
+from Src.Packages.Juego import Partida
 import colorsys
+from random import shuffle, choice
 
 def Apuntado():
 
@@ -23,15 +24,29 @@ def Apuntado():
         root.geometry(f"{width}x{height}+{x}+{y}")
 
     def comenzarNuevoJuego():
-        '''se crea un juego (por defecto de 5 jugadores), y se define el jugador que empieza primero'''
+        '''se crea un juego (por defecto de 5 jugadores), y se randomiza el orden de la lista de jugadores'''
 
-        global j, num_jugadores_juego, juego
+        global j, num_jugadores_juego, juego, numero_partidas
 
         ### Se empieza un nuevo juego
         num_jugadores_juego = 5
         juego = Juego(num_jugadores_juego) # se inicia un juego con 5 jugadores
 
-        juego.jugarJuego() # se reparten las cartas
+        shuffle(juego.getJugadores()) # se randomiza el orden de la lista de jugadores
+
+        numero_partidas = 0
+        comenzarNuevaPartida()
+
+    def comenzarNuevaPartida():
+        '''se crea una nueva partida, se reparten las cartas y se estbalece qué jugador empieza de primero'''
+
+        global juego, j, partida, numero_partidas, label_num_partida
+
+        numero_partidas += 1
+        label_num_partida.config(text = f"{numero_partidas}")
+
+        partida = Partida(juego.getJugadores()) # se crea la partida
+        partida.repartirCartas() # se reparten las cartas
 
         for j in range(len(juego.getJugadores())): # se establece quien es el jugador que comienza (el de las 11 cartas)
             if len(juego.getJugadores()[j].getMano()) == 11:
@@ -40,13 +55,14 @@ def Apuntado():
 
             #while True:
 
+        actualizarTablaPuntajes()
         mostrar_cartas_jugador(juego.getJugadores()[j])
 
     def start():
         '''Se crea la interfaz de juego'''
 
-        global frame_inferior, frame_superior, altura_seccion, ancho_seccion, label_num_jugador
-        global label_carta_seleccionada, label_carta_seleccionada2
+        global frame_inferior, frame_superior, altura_seccion, ancho_seccion, frame_puntajes
+        global label_carta_seleccionada, label_carta_seleccionada2, label_num_partida, label_num_jugador
         global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta
 
         for widget in root.winfo_children():
@@ -66,10 +82,10 @@ def Apuntado():
 
         # label de jugador
         label_info_jugador = tk.Label(frame_superior, text = 'Jugador #', bg='darkgray', height=3, width=10)
-        label_info_jugador.grid(row=1, column=0, padx=10, pady=5)
+        label_info_jugador.grid(row=1, column=0, padx=10, pady=10)
 
         label_num_jugador = tk.Label(frame_superior, text = 'nn', bg='darkgreen', height=3, width=10)
-        label_num_jugador.grid(row=1, column=1, padx=10, pady=5)
+        label_num_jugador.grid(row=1, column=1, padx=10, pady=10)
 
 
         ### Botones
@@ -94,22 +110,33 @@ def Apuntado():
         botonCogerCarta = tk.Button(frame_superior, text='Coger Carta Tirada', bg="gray", bd=5, height=3, width=15, command=coger_carta)
         botonCogerCarta.grid(row=0, column=6, padx=10, pady=10, sticky="n")  # Alinear arriba
 
+
+        ### frame de tabla puntajes:
+        frame_puntajes = tk.Frame(frame_superior, bg="lightblue", height=200, width=100)
+        frame_puntajes.grid(row=0, column=10, padx=40, pady=2, sticky="e", rowspan=2)
+
+
         # Configurar el frame inferior (gris)
         frame_inferior = tk.Frame(root, bg="gray", height=200, width=1300)
         frame_inferior.pack(fill="both", expand=True, padx=4, pady=4)
 
-        # Centrar la ventana en la pantalla
-        center_window(root, 1300, 500)
-
+        center_window(root, 1300, 500) # Centrar la ventana en la pantalla
 
         comenzarNuevoJuego()
-        '''# label de cartas seleccionadas (teniendo en cuenta tocar)
-        label_carta_seleccionada = tk.Label(frame_superior, bg='darkblue', height=altura_seccion, width=ancho_seccion)
-        label_carta_seleccionada.grid(row=0, column=6, padx=10, pady=10) #, sticky="e")
+    
+    def actualizarTablaPuntajes():
+        '''se crean labels con la info de los puntajes de los jugadores'''
 
-        label_carta_seleccionada2 = tk.Label(frame_superior, bg='darkblue', height=altura_seccion, width=ancho_seccion)
-        label_carta_seleccionada2.grid(row=0, column=7, padx=10, pady=10) #, sticky="e")'''
+        global juego, j, frame_puntajes
 
+        i = 0
+        for jug in juego.getJugadores():
+            label_jugador = tk.Label(frame_puntajes, text = f'Jugador # {jug.getnumJugador()}', bg='darkgray', height=1, width=10)
+            label_jugador.grid(row=i, column=0, padx=0, pady=0)
+
+            label_puntaje = tk.Label(frame_puntajes, text = f'{jug.getPuntaje()}', bg='darkgreen', height=1, width=10)
+            label_puntaje.grid(row=i, column=1, padx=0, pady=0)
+            i += 1
 
     def mostrar_cartas_jugador(jugador):
         '''se muestran las cartas del jugador, poniéndolas en botones'''
@@ -147,7 +174,7 @@ def Apuntado():
 
             global subframeCartaTirada
             subframeCartaTirada = tk.Frame(frame_superior, bg="darkblue", height=altura_seccion, width=ancho_seccion)
-            subframeCartaTirada.grid(row = 0, column=8, rowspan=2, sticky="e", padx=0, pady=0)  # se alinean los subframes uno al lado del otro
+            subframeCartaTirada.grid(row = 0, column=8, rowspan=2, sticky="e", padx=10, pady=10)  # se alinean los subframes uno al lado del otro
 
             # Cargar la imagen
             imagen_path = f'Src/img/Classic/{jugador.getCartaTirada().getPinta()}/{jugador.getCartaTirada().getPinta()}{jugador.getCartaTirada().getDenominacion()}.png' 
@@ -165,7 +192,6 @@ def Apuntado():
 
         for carta in mano_jugador: # se pone cada carta del jugador en los botones
             
-            #cartas.append(carta)
             # Crear un subframe para cada sección
             subframe = tk.Frame(frame_inferior, bg="gray", height=altura_seccion, width=ancho_seccion)
             subframe.pack_propagate(False)  # se evita que el subframe se ajuste automáticamente
@@ -194,7 +220,7 @@ def Apuntado():
 
         global frame_inferior, frame_superior, altura_seccion, ancho_seccion, label_num_jugador
         global label_carta_seleccionada, label_carta_seleccionada2, botones, cartas, subframeCartaTirada
-        global botonTocar, botonBajarse, botonCogerCarta, carta_seleccionada, label_carta_seleccionada, botones
+        global botonTocar, botonBajarse, botonCogerCarta, label_carta_seleccionada, botones
 
         subframe = tk.Frame(frame_inferior, bg="gray", height=altura_seccion, width=ancho_seccion)
         subframe.pack_propagate(False)  # se evita que el subframe se ajuste automáticamente
@@ -262,19 +288,20 @@ def Apuntado():
             print('selecciona una carta')
                 
 
-    def arrastrar(): #falta
+    def arrastrar():
         # agregar aquí lo que pasará al hacer click en el botón 'arrastrar'
         accion = 'arrastrar'
-        global carta_seleccionada, j, num_jugadores_juego, juego
+        global carta_seleccionada, j, num_jugadores_juego, juego, partida
+
         if len(juego.getJugadores()[j].getMano()) == 10:
-
-            '''carta = choice(self.__baraja.getBaraja())   # Se escoge una carta al azar de una baraja
-            if self.__mazo[carta] > 0:                  # Si la carta está disponible en el mazo, es decir si aún hay al menos una carta (en el mazo) de la escogida en una baraja
-            jugador.añadirCarta(carta)                  # Se le añade la carta al jugador
-            self.__mazo[carta] -= 1'''
-
-            juego.getJugadores()[j].añadirCarta(juego.getJugadores()[j].getCartaTirada())
-            añadir_carta_adicional(juego.getJugadores()[j].getCartaTirada())
+            juego.getJugadores()[j].setCartaTirada = None # se borra la carta que tenía en el atributo de cartaTirada
+            carta = choice(partida.getBaraja().getBaraja())    # Se escoge una carta al azar de una baraja
+            if partida.getMazo()[carta] > 0:                     # Si la carta está disponible en el mazo, es decir si aún hay al menos una carta (en el mazo) de la escogida en una baraja
+                juego.getJugadores()[j].añadirCarta(carta)     # Se le añade la carta al jugador
+                partida.getMazo()[carta] -= 1
+                print(carta.getPinta(), carta.getDenominacion())
+                añadir_carta_adicional(carta)
+            
         else:
             print('debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada')
 
@@ -283,13 +310,25 @@ def Apuntado():
         global carta_seleccionada
         accion = 'tocar'
         pass
+        
+    def validadorBajarse():
+        '''acá se implementará la lógica para validar cuando el jugador puede bajarse y cuando todavía no'''
+        pass
 
     def bajarse():
-        global botonTocar
-        # agregar aquí lo que pasará al hacer click en el botón 'bajarse'
+        '''acá se actualizará el valor del puntaje de cada uno de los juagdores, y se comenzará una nueva partida
+        (falta validar quien gana el juego y quien sale de él)'''
+        global botonTocar, juego
+
         accion = 'bajarse'
-        #botonTocar.config(state=tk.DISABLED)
-        pass
+        validadorBajarse()
+        for player in juego.getJugadores():     
+            puntajePlayer = player.getPuntaje() # se mira que puntaje tiene el jugador
+            for card in player.getMano():
+                puntajePlayer += card.getValor()      # se suma el valor de cada carta al valor del puntaje del jugador
+            player.setPuntaje(puntajePlayer)    # se define el puntaje del jugador
+
+        comenzarNuevaPartida()
     
     def coger_carta():
         # agregar aquí lo que pasará al hacer click en el botón 'cogerCarta'

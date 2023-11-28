@@ -13,6 +13,12 @@ class Partida:
     def jugarPartida(self):                         ### Método para jugar una partida ###
         self.repartirCartas()               # Se comienza repartiendo las cartas a los jugadores
 
+    def getMazo(self):
+        return self.__mazo
+    
+    def getBaraja(self):
+        return self.__baraja
+    
     def repartirCartas(self):                       ### Método para repartir cartas a los jugadores ###
         first = True    # Se crea un controlador para asignarle al primer jugador 11 cartas
         for i in range(len(self.__turnos)):

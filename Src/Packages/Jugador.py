@@ -28,6 +28,7 @@ class Jugador:                              # PD: Luego hay que crear la clase u
         self.__cartaTirada = carta
 
     def tirar(self, jugador, carta: Carta): ### Método para tirar una carta al próximo jugador ###
+        self.__mano.remove(carta)
         jugador.setCartaTirada(carta)
 
     def getCartaTocar1(self):               ### Método para acceder a la primera carta con la que el jugador desea tocar ###

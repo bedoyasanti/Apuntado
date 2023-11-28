@@ -15,7 +15,7 @@ class Carta:
         return self.__pinta
     
     def getDenominacion(self):
-        return self.__valor
+        return self.__denominacion
                                                 ### Métodos para acceder a las propiedades de la carta ###
     def getValor(self):
         return self.__valor

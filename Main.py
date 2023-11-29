@@ -158,16 +158,23 @@ def Apuntado():
 
     def definirGanador_Perdedores():
         '''acá se verificarán cuales jugadores pueden seguir jugando, y cuales no'''
-        global juego
 
-        for jug in juego.getJugadores(): # se sacan lo ugadores con mas de 101 puntos
-            if jug.getPuntaje() >= 101:
+        global juego, j
+
+        for jug in range(len(juego.getJugadores())): # se sacan lo ugadores con mas de 101 puntos
+            if juego.getJugadores()[jug].getPuntaje() >= 101:
                 print(f'Sale el jugador {jug.getnumJugador()}, acumuló {jug.getPuntaje()} puntos')
                 juego.getJugadores().remove(jug)
+
+        for jug2 in juego.getJugadores(): # se actualiza el valor de j, variable que itera en la lista de jugadores
+            if jug2.getGanador():
+                j = juego.getJugadores().index(jug2)
+                break
 
         texto = 'Felicidades!!! El ganador del juego es el jugador número'
         if jug.getPuntaje() <= -50:
             print(f'{texto} {jug.getnumJugador()} acumuló {jug.getPuntaje()} puntos')
+
         elif len(juego.getJugadores()) == 1:
             print(f'{texto} {jug.getnumJugador()} es el último sobreviviente del juego')
 
@@ -315,7 +322,16 @@ def Apuntado():
                 else:
                     juego.getJugadores()[j].tirar(juego.getJugadores()[0], carta_seleccionada)
                     j = 0
+
                 siguienteTurno(juego.getJugadores()[j])
+                '''while True: # se valida que el siguiente en jugar, sea un jugador que no ha perdido
+                    if not juego.getJugadores()[j].getPerdedor():
+                        siguienteTurno(juego.getJugadores()[j])
+                    else:
+                        if j != (num_jugadores_juego - 1):
+                            j += 1
+                        else:
+                            j = 0'''
             else:
                 print('debes tener 11 cartas en tu mano para tirar')
         else:
@@ -364,11 +380,15 @@ def Apuntado():
 
         accion = 'bajarse'
         if validadorBajarse(): # con esta función se debe garantizar que el jugador se puede bajar
-            for player in juego.getJugadores():     
-                puntajePlayer = player.getPuntaje() # se mira que puntaje tiene el jugador
-                for card in player.getMano():
-                    puntajePlayer += card.getValor()      # se suma el valor de cada carta al valor del puntaje del jugador
-                player.setPuntaje(puntajePlayer)    # se define el puntaje del jugador
+            for player in juego.getJugadores():
+                if player != juego.getJugadores()[j]: # se suman los puntos de los jugadores que hayan perdido  
+                    puntajePlayer = player.getPuntaje() # se mira que puntaje tiene el jugador
+                    for card in player.getMano():
+                        puntajePlayer += card.getValor()      # se suma el valor de cada carta al valor del puntaje del jugador
+                    player.setPuntaje(puntajePlayer)    # se define el puntaje del jugador
+                else:
+                    player.setPuntaje(player.getPuntaje() - 10) # se le restan 10 al puntaje del jugador
+                    # FALTA validar cuando el jugador gane a pintas
 
             for widget in frame_inferior.winfo_children(): # se borra todo lo que esté en el frame inferior
                 widget.destroy()

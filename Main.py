@@ -4,8 +4,10 @@ from PIL import ImageTk
 from PIL import Image
 from Src.Packages.Juego import Juego
 from Src.Packages.Partida import Partida
+from Src.Packages.Dealer import Dealer
 import colorsys
 from random import shuffle, choice
+import sys
 
 def Apuntado():
 
@@ -36,24 +38,31 @@ def Apuntado():
         frame_superior = tk.Frame(root, bg="green", height=300, width=1300)
         frame_superior.pack(fill="both", expand=True, padx=4, pady=4)
 
+        # Configurar el frame inferior (gris)
+        frame_inferior = tk.Frame(root, bg="gray", height=200, width=1300)
+        frame_inferior.pack(fill="both", expand=True, padx=4, pady=4)
+
         ### Labels
         # label de info partida
         label_info_partida = tk.Label(frame_superior, bg='darkgray', text = 'Partida #', height=3, width=10)
-        label_info_partida.grid(row=0, column=0, sticky="nw", padx=10, pady=5)
+        label_info_partida.grid(row=0, column=0, padx=10, pady=(2,0))
 
         label_num_partida = tk.Label(frame_superior, bg='darkgreen', text = '1', height=3, width=10)
-        label_num_partida.grid(row=0, column=1, sticky="nw", padx=10, pady=5)
+        label_num_partida.grid(row=0, column=1, padx=10, pady=(2, 0))
 
 
         # label de jugador
         label_info_jugador = tk.Label(frame_superior, text = 'Jugador #', bg='darkgray', height=3, width=10)
-        label_info_jugador.grid(row=1, column=0, padx=10, pady=10)
+        label_info_jugador.grid(row=1, column=0, padx=10, pady=(2, 0))
 
         label_num_jugador = tk.Label(frame_superior, text = 'nn', bg='darkgreen', height=3, width=10)
-        label_num_jugador.grid(row=1, column=1, padx=10, pady=10)
-
+        label_num_jugador.grid(row=1, column=1, padx=10, pady=(2, 0))
 
         ### Botones
+        # Boton de Ordenar Cartas
+        botonOrdenar = tk.Button(frame_superior, text='Ordenar Cartas', bg="gray", bd=5, height=1, width=15, command=ordenarCartas)
+        botonOrdenar.grid(row=3, column=0, rowspan=2, padx=10, pady=10, sticky="sw")
+
         # Botón de Tirar
         botonTirar = tk.Button(frame_superior, text='Tirar', bg="gray", bd=5, height=3, width=10, command=tirar)
         botonTirar.grid(row=0, column=2, padx=10, pady=10, sticky="n")  # Alinear arriba
@@ -81,10 +90,6 @@ def Apuntado():
         frame_puntajes.grid(row=0, column=10, padx=40, pady=2, sticky="e", rowspan=2)
 
 
-        # Configurar el frame inferior (gris)
-        frame_inferior = tk.Frame(root, bg="gray", height=200, width=1300)
-        frame_inferior.pack(fill="both", expand=True, padx=4, pady=4)
-
         center_window(root, 1300, 500) # Centrar la ventana en la pantalla
 
         comenzarNuevoJuego()
@@ -108,8 +113,8 @@ def Apuntado():
     def comenzarNuevaPartida():
         '''se crea una nueva partida, se reparten las cartas y se establece qué jugador empieza de primero'''
 
-        global juego, j, partida, numero_partidas, label_num_partida, ganador, mano_inicial
-        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta
+        global juego, j, partida, numero_partidas, label_num_partida, ganador, mano_inicial, partida
+        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, turno1
 
         numero_partidas += 1
         label_num_partida.config(text = f"{numero_partidas}")
@@ -122,7 +127,7 @@ def Apuntado():
 
         partida = Partida(juego.getJugadores()) # se crea la partida
 
-        partida.repartirCartas() # se reparten las cartas
+        partida.getDealer().repartirCartas(juego.getJugadores(), partida.getMazo(), partida.getBaraja()) # se reparten las cartas
 
         for j in range(len(juego.getJugadores())): # se establece quien es el jugador que comienza (el de las 11 cartas)
             if len(juego.getJugadores()[j].getMano()) == 11:
@@ -137,8 +142,9 @@ def Apuntado():
         botonTocar.config(state=tk.DISABLED)
         botonBajarse.config(state=tk.DISABLED)
 
+        turno1 = True # para verificar si es el primer turno de una partida
         actualizarTablaPuntajes()
-        mostrar_cartas_jugador(juego.getJugadores()[j])
+        mostrar_cartas_jugador(juego.getJugadores()[j], False)
 
     def actualizarTablaPuntajes():
         '''se crean labels con la info de los puntajes de los jugadores'''
@@ -147,8 +153,11 @@ def Apuntado():
 
         definirGanador_Perdedores() # se actualizan ganadores y perdedores
 
+        for widget in frame_puntajes.winfo_children(): # se borra todo lo que esté en el frame inferior
+                widget.destroy()
+
         i = 0
-        for jug in juego.getJugadores():
+        for jug in juego.getJugadores(): #FALTA destruir lo que halla dentro del frame
             label_jugador = tk.Label(frame_puntajes, text = f'Jugador # {jug.getnumJugador()}', bg='darkgray', height=1, width=10)
             label_jugador.grid(row=i, column=0, padx=0, pady=0)
 
@@ -158,26 +167,46 @@ def Apuntado():
 
     def definirGanador_Perdedores():
         '''acá se verificarán cuales jugadores pueden seguir jugando, y cuales no'''
-        global juego
 
-        for jug in juego.getJugadores(): # se sacan lo ugadores con mas de 101 puntos
-            if jug.getPuntaje() >= 101:
-                print(f'Sale el jugador {jug.getnumJugador()}, acumuló {jug.getPuntaje()} puntos')
-                juego.getJugadores().remove(jug)
+        global juego, j
 
+        i = 0
+        while i != len(juego.getJugadores()): # se sacan lo jugadores con mas de 101 puntos
+            if juego.getJugadores()[i].getPuntaje() >= 101:
+                print(f'Sale el jugador {juego.getJugadores()[i].getnumJugador()}, acumuló {juego.getJugadores()[i].getPuntaje()} puntos')
+                juego.getJugadores().remove(juego.getJugadores()[i])
+            else:
+                i += 1
+
+        for jug2 in juego.getJugadores(): # se actualiza el valor de j, variable que itera en la lista de jugadores
+            if jug2.isGanador():
+                j = juego.getJugadores().index(jug2)
+                break
+        
         texto = 'Felicidades!!! El ganador del juego es el jugador número'
-        if jug.getPuntaje() <= -50:
-            print(f'{texto} {jug.getnumJugador()} acumuló {jug.getPuntaje()} puntos')
-        elif len(juego.getJugadores()) == 1:
-            print(f'{texto} {jug.getnumJugador()} es el último sobreviviente del juego')
 
+        if len(juego.getJugadores()) == 1: # se valida si queda solo un jugador en el juego
+                print(f'{texto} {juego.getJugadores()[0].getnumJugador()}, el último sobreviviente del juego!!!')
+                for widget in root.winfo_children(): # se borra toda la interfaz FALTA - error
+                    widget.destroy()
+                # Salir del programa
+                sys.exit()
 
-    def mostrar_cartas_jugador(jugador):
+        for jug in juego.getJugadores():
+            if jug.getPuntaje() <= -50:
+                print(f'{texto} {jug.getnumJugador()} acumuló {jug.getPuntaje()} puntos')
+                for widget in root.winfo_children(): # se borra toda la interfaz
+                    widget.destroy()
+                # Salir del programa
+                sys.exit()
+
+    def mostrar_cartas_jugador(jugador, orden):
         '''se muestran las cartas del jugador, poniéndolas en botones'''
 
         global frame_inferior, frame_superior, altura_seccion, ancho_seccion, label_num_jugador, carta, carta_seleccionada
+        global subframeCartaTirada, turno1
         global label_carta_seleccionada, label_carta_seleccionada2, botones, cartas
-        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta
+        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, ordenar
 
         ### habilitar todos los botones
         botonTirar.config(state=tk.NORMAL)
@@ -204,12 +233,11 @@ def Apuntado():
         for widget in frame_inferior.winfo_children():
             widget.destroy()
 
-        if jugador.getCartaTirada() != None: # se pone en el frame superior la carta que le tiraron anteriormente
-
-            global subframeCartaTirada
+        if jugador.getCartaTirada() != None and not orden: # se pone en el frame superior la carta que le tiraron anteriormente
+            
             subframeCartaTirada = tk.Frame(frame_superior, bg="darkblue", height=altura_seccion, width=ancho_seccion)
             subframeCartaTirada.grid(row = 0, column=8, rowspan=2, sticky="e", padx=10, pady=(5, 0))  # se alinean los subframes uno al lado del otro
-
+        
             # Cargar la imagen
             imagen_path = f'Src/img/Classic/{jugador.getCartaTirada().getPinta()}/{jugador.getCartaTirada().getPinta()}{jugador.getCartaTirada().getDenominacion()}.png' 
             imagen = Image.open(imagen_path)
@@ -223,6 +251,14 @@ def Apuntado():
             label_cartaTirada.config(image=imagen)  # Configurar la imagen en el botón
             label_cartaTirada.pack(fill="both", expand=True)
 
+        else:
+            if not turno1: # verificar esto
+                # actualizo el valor de carta tirada del jugador, y elimino el frame
+                juego.getJugadores()[j].setCartaTirada(None)
+                for widget in subframeCartaTirada.winfo_children(): # se borra todo lo que esté en el frame inferior
+                    widget.destroy()
+                subframeCartaTirada.destroy()
+                turno1 = False
 
         for carta in mano_jugador: # se pone cada carta del jugador en los botones
             
@@ -266,7 +302,7 @@ def Apuntado():
         image_redimensionada = imagen.resize((ancho_seccion - 8, altura_seccion - 8), Image.LANCZOS) # se redimensionan las imágenes al tamaño de los contenedores
         imagen = ImageTk.PhotoImage(image_redimensionada)
 
-        ### botones con las cartas (no sé como se hace con un solo botón)
+        ### botones con las cartas
         # Mostrar la imagen en el botón
         boton = tk.Button(subframe, bg="gray", bd=4, 
                             command=lambda img=imagen, c=carta: seleccionar_carta(img, c))
@@ -280,6 +316,13 @@ def Apuntado():
         botonArrastrar.config(state=tk.DISABLED)
         botonTocar.config(state=tk.DISABLED)
         botonBajarse.config(state=tk.DISABLED)
+
+        # actualizo el valor de carta tirada del jugador, y elimino el frame
+        juego.getJugadores()[j].setCartaTirada(None)
+        #subframeCartaTirada.destroy()
+
+        for widget in subframeCartaTirada.winfo_children(): # se borra todo lo que esté en el frame inferior
+                widget.destroy()
         subframeCartaTirada.destroy()
 
     def seleccionar_carta(imagen, carta):
@@ -298,24 +341,48 @@ def Apuntado():
 
         carta_seleccionada = carta
 
+    
+    def ordenarCartas():
+        global j, juego, ordenar
+
+        ordenar = True
+        i = (len(juego.getJugadores()[j].getMano()) - 1) #bubblesorting para ordenar la mano
+        while i != 0:
+            for e in range(0, i):
+                if juego.getJugadores()[j].getMano()[e].getden2() > juego.getJugadores()[j].getMano()[e+1].getden2():
+                    juego.getJugadores()[j].modificarMano(e,e+1)
+            i -= 1
+
+        mostrar_cartas_jugador(juego.getJugadores()[j], True)
+
 
     def siguienteTurno(jugador):
-        mostrar_cartas_jugador(jugador)
+        mostrar_cartas_jugador(jugador, False)
 
     def tirar():
         '''instrucciones cada que el jugador tira una carta'''
 
-        global carta_seleccionada, j, num_jugadores_juego, juego
+        global carta_seleccionada, j, num_jugadores_juego, juego, ordenar
         accion = 'tirar'
         if carta_seleccionada != '':
             if len(juego.getJugadores()[j].getMano()) == 11:
-                if j != (num_jugadores_juego - 1): # se valida que el jugador no sea el último de la lista juego.getJugadores()
+                if j != (len(juego.getJugadores()) - 1): # se valida que el jugador no sea el último de la lista juego.getJugadores()
                     juego.getJugadores()[j].tirar(juego.getJugadores()[j+1], carta_seleccionada)
                     j += 1
                 else:
                     juego.getJugadores()[j].tirar(juego.getJugadores()[0], carta_seleccionada)
                     j = 0
+
+                ordenar = False
                 siguienteTurno(juego.getJugadores()[j])
+                '''while True: # se valida que el siguiente en jugar, sea un jugador que no ha perdido
+                    if not juego.getJugadores()[j].getPerdedor():
+                        siguienteTurno(juego.getJugadores()[j])
+                    else:
+                        if j != (num_jugadores_juego - 1):
+                            j += 1
+                        else:
+                            j = 0'''
             else:
                 print('debes tener 11 cartas en tu mano para tirar')
         else:
@@ -360,15 +427,21 @@ def Apuntado():
         '''acá se actualizará el valor del puntaje de cada uno de los juagdores, y se comenzará una nueva partida
         (falta validar quien gana el juego y quien sale de él)'''
 
-        global botonTocar, juego, frame_inferior, j, subframeCartaTirada
+        global botonTocar, juego, frame_inferior, j, subframeCartaTirada, partida
 
         accion = 'bajarse'
-        if validadorBajarse(): # con esta función se debe garantizar que el jugador se puede bajar
-            for player in juego.getJugadores():     
-                puntajePlayer = player.getPuntaje() # se mira que puntaje tiene el jugador
-                for card in player.getMano():
-                    puntajePlayer += card.getValor()      # se suma el valor de cada carta al valor del puntaje del jugador
-                player.setPuntaje(puntajePlayer)    # se define el puntaje del jugador
+        if partida.getDealer().validarBajarse(juego.getJugadores()[j]): # con esta función se debe garantizar que el jugador se puede bajar
+            '''for player in juego.getJugadores():
+                if player != juego.getJugadores()[j]: # se suman los puntos de los jugadores que hayan perdido  
+                    puntajePlayer = player.getPuntaje() # se mira que puntaje tiene el jugador
+                    for card in player.getMano():
+                        puntajePlayer += card.getValor()      # se suma el valor de cada carta al valor del puntaje del jugador
+                    player.setPuntaje(puntajePlayer)    # se define el puntaje del jugador
+                else:
+                    player.setPuntaje(player.getPuntaje() - 10) # se le restan 10 al puntaje del jugador
+                    # FALTA validar cuando el jugador gane a pintas'''
+            otros_jugadores = juego.getJugadores()[:j] + juego.getJugadores()[j+1:]
+            partida.getDealer().comprobarManos(juego.getJugadores()[j], otros_jugadores)
 
             for widget in frame_inferior.winfo_children(): # se borra todo lo que esté en el frame inferior
                 widget.destroy()
@@ -379,11 +452,11 @@ def Apuntado():
 
             juego.getJugadores()[j].setGanador(True) # se pone un valor de True en el atributo ganador del jugador
 
-            subframeCartaTirada.destroy()
+            subframeCartaTirada.destroy() # FALTA destruir todo lo del frame
             comenzarNuevaPartida()
 
         else:
-            pass
+            print('Todavía no te puedes bajar')
     
     def coger_carta():
         # agregar aquí lo que pasará al hacer click en el botón 'cogerCarta'
@@ -394,7 +467,6 @@ def Apuntado():
             añadir_carta_adicional(juego.getJugadores()[j].getCartaTirada())
         else:
             print('debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada')
-
 
 
     root = tk.Tk()

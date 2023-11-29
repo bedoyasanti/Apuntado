@@ -7,8 +7,9 @@ class Partida:
         self.__turnos = turnos
         self.__dealer = Dealer()
         self.__mazo = {}
-        baraja = Baraja()
-        for carta in baraja.getBaraja():
+        self.__baraja = Baraja()
+        
+        for carta in self.__baraja.getBaraja():
             self.__mazo[carta] = 2          # La partida comienza con 2 barajas, por lo que cada carta se muestra 2 veces
         
     def jugarPartida(self):                         ### Método para jugar una partida ###
@@ -16,3 +17,9 @@ class Partida:
 
     def getMazo(self):
         return self.__mazo
+
+    def getDealer(self):
+        return self.__dealer
+    
+    def getBaraja(self):
+        return self.__baraja

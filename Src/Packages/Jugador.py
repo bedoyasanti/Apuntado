@@ -12,6 +12,7 @@ class Jugador:                              # PD: Luego hay que crear la clase u
         self.__cartaTocar2 = None
         self.__puntos = 0
         self.__ganador = False
+        self.__perdedor = False
 
     def getnumJugador(self):
         return self.__numero_jugador
@@ -62,7 +63,12 @@ class Jugador:                              # PD: Luego hay que crear la clase u
 
     def isGanador(self):
         return self.__ganador
+
+    def setGanador(self, val: bool):
+        self.__ganador = val
     
-    def setGanador(self, flag: bool):
-        self.__ganador = flag
-    
+    def setPerdedor(self, valor: bool):
+        self.__perdedor = valor
+
+    def getPerdedor(self):
+        return self.__perdedor

@@ -11,7 +11,7 @@ class Juego:
 
     def getJugadores(self):
         return self.__jugadores
-    
+
     def jugarJuego(self):                 ### Método para iniciar el juego ###
         shuffle(self.__jugadores)   # Primero se randomiza la lista de jugadores, para escoger aleatoriamente al primer jugador y los turnos en la primera partida
         first = True            # Se crea un controlador para cuando sea la primera partida

@@ -58,18 +58,14 @@ class Jugador:                              # PD: Luego hay que crear la clase u
     def setPuntaje(self, puntaje):
         self.__puntos = puntaje
 
-<<<<<<< Updated upstream
     def sumPuntos(self, pts: int):          ### Método para añadir puntos al jugador ###
         self.__puntos += pts
 
     def isGanador(self):
-=======
-    def setGanador(self, flag: bool):
-        self.__ganador = flag
-        
-    def getGanador(self):
->>>>>>> Stashed changes
         return self.__ganador
+
+    def setGanador(self, val: bool):
+        self.__ganador = val
     
     def setPerdedor(self, valor: bool):
         self.__perdedor = valor

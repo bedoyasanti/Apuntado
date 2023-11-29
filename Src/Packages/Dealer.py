@@ -8,8 +8,8 @@ class Dealer:
     def __init__(self):
         pass
 
-    def repartirCartas(self, turnos, mazo):                             ### Método para repartir cartas a los jugadores ###
-        baraja = Baraja()
+    def repartirCartas(self, turnos, mazo, baraja : Baraja):                             ### Método para repartir cartas a los jugadores ###
+        #baraja = Baraja()
         for i in range(len(turnos)):
             jugador : Jugador = turnos[i]# Se itera sobre los turnos de jugadores, dada la prioridad
             while True:

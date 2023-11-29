@@ -26,7 +26,6 @@ class Dealer:
                 if mazo[carta] > 0:                  # Si la carta está disponible en el mazo, es decir si aún hay al menos una carta (en el mazo) de la escogida en una baraja
                     jugador.añadirCarta(carta)              # Se le añade la carta al jugador
                     mazo[carta] -= 1
-        return mazo
     
     def comprobarManos(self, ganador: Jugador, otros, tocar = 0):       ### Método que comprueba las manos del ganador, y los otros jugadores de la partida ###
         ManoG = ganador.getMano()
@@ -145,10 +144,10 @@ class Dealer:
         else:
             return True
         
-    def validarTocar1(self, jugador: Jugador, carta1: Carta, carta2:Carta = None):
+    def validarTocar(self, jugador: Jugador, carta1: Carta, carta2:Carta = None):
         if (carta2 != None) and ((carta1.getValor() + carta2.getValor()) > 5):
             return False
-        elif (carta2 == None) and (carta1.getValor() == 5):
+        elif (carta2 == None) and (carta1.getValor() > 5):
             return False
         else:
             Mano = jugador.getMano()
@@ -222,4 +221,4 @@ class Dealer:
         if any(carta.getPinta() != "Replaced" for carta in Mano):
             return False
         else:
-            return pts
+            return True

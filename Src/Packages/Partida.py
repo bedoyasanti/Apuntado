@@ -12,11 +12,7 @@ class Partida:
             self.__mazo[carta] = 2          # La partida comienza con 2 barajas, por lo que cada carta se muestra 2 veces
         
     def jugarPartida(self):                         ### Método para jugar una partida ###
-        self.__mazo = self.__dealer.repartirCartas(self.__turnos,self.__mazo)               # Se comienza repartiendo las cartas a los jugadores
+        self.__dealer.repartirCartas(self.__turnos,self.__mazo)               # Se comienza repartiendo las cartas a los jugadores
 
     def getMazo(self):
-        mazo = []
-        for carta, disp in self.__mazo.items():
-            if disp > 0:
-                mazo.append(carta)
-        return mazo
+        return self.__mazo

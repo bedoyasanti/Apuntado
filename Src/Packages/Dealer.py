@@ -28,7 +28,8 @@ class Dealer:
                     mazo[carta] -= 1
     
     def comprobarManos(self, ganador: Jugador, otros, tocar = 0):       ### Método que comprueba las manos del ganador, y los otros jugadores de la partida ###
-        ManoG = ganador.getMano()
+        MG = ganador.getMano()
+        ManoG = MG.copy()
         if tocar == 1:
             ganador.sumPuntos(ManoG[9].getValor())
         elif tocar == 2:
@@ -40,7 +41,8 @@ class Dealer:
 
         for i in range(len(otros)):
             jugador: Jugador = otros[i]
-            Mano = jugador.getMano()
+            M = jugador.getMano()
+            Mano = M.copy()
             pts = 0
             if Reglas.septima_1_7(Mano):
                 Mano[0], Mano[1], Mano[2], Mano[3], Mano[4], Mano[5], Mano[6] = Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20")
@@ -93,7 +95,8 @@ class Dealer:
             jugador.sumPuntos(pts)
 
     def validarBajarse(self, jugador: Jugador):         ### Método para validar si un jugador se puede bajar ###
-        Mano = jugador.getMano()
+        M = jugador.getMano()
+        Mano = M.copy()
         if Reglas.septima_1_7(Mano):
             Mano[0], Mano[1], Mano[2], Mano[3], Mano[4], Mano[5], Mano[6] = Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20")
         if Reglas.septima_4_10(Mano):
@@ -150,7 +153,8 @@ class Dealer:
         elif (carta2 == None) and (carta1.getValor() > 5):
             return False
         else:
-            Mano = jugador.getMano()
+            M = jugador.getMano()
+            Mano = M.copy()
             if carta2 != None:
                 pts = carta1.getValor() + carta2.getValor()
                 Mano[Mano.index(carta1)] = Carta("Replaced", "20")

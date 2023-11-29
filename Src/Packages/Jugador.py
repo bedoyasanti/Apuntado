@@ -11,6 +11,7 @@ class Jugador:                              # PD: Luego hay que crear la clase u
         self.__cartaTocar1 = None
         self.__cartaTocar2 = None
         self.__puntos = 0
+        self.__ganador = False
 
     def getnumJugador(self):
         return self.__numero_jugador
@@ -24,7 +25,7 @@ class Jugador:                              # PD: Luego hay que crear la clase u
     def getCartaTirada(self):               ### Método para acceder a la carta que el jugador anterior le tiró ###
         return self.__cartaTirada
     
-    def setCartaTirada(self, carta: Carta): ### Método para establecer la carta que el jugador anterior le tiró, útil para el método tirar() ###
+    def setCartaTirada(self, carta): # : Carta ### Método para establecer la carta que el jugador anterior le tiró, útil para el método tirar() ###
         self.__cartaTirada = carta
 
     def tirar(self, jugador, carta: Carta): ### Método para tirar una carta al próximo jugador ###
@@ -39,9 +40,19 @@ class Jugador:                              # PD: Luego hay que crear la clase u
     
     def getMano(self):                      ### Método para acceder a la mano del jugador ###
         return self.__mano
+    
+    def setMano(self, mano: list()):
+        self.__mano = mano
 
     def getPuntaje(self):
         return self.__puntos
     
     def setPuntaje(self, puntaje):
         self.__puntos = puntaje
+
+    def getGanador(self):
+        return self.__ganador
+    
+    def setGanador(self, flag: bool):
+        self.__ganador = flag
+    

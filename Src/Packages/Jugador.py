@@ -38,6 +38,13 @@ class Jugador:                              # PD: Luego hay que crear la clase u
     def getCartaTocar2(self):               ### Método para acceder a la segunda carta con la que el jugador desea tocar ###
         return self.__cartaTocar2
     
+    def tocar(self, idx1: int, idx2: int = None):
+        if idx2 != None:
+            self.__mano.append(self.__mano.pop(idx1))
+            self.__mano.append(self.__mano.pop(idx2))
+        else:
+            self.__mano.append(self.__mano.pop(idx1))
+    
     def getMano(self):                      ### Método para acceder a la mano del jugador ###
         return self.__mano
     
@@ -50,7 +57,10 @@ class Jugador:                              # PD: Luego hay que crear la clase u
     def setPuntaje(self, puntaje):
         self.__puntos = puntaje
 
-    def getGanador(self):
+    def sumPuntos(self, pts: int):          ### Método para añadir puntos al jugador ###
+        self.__puntos += pts
+
+    def isGanador(self):
         return self.__ganador
     
     def setGanador(self, flag: bool):

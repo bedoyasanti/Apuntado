@@ -87,26 +87,26 @@ class Apuntado:
         botonCambiarCartas = tk.Button(frame_superior, text='Cambiar Cartas', bg="gray", bd=5, height=1, width=15, command=self.habilitarCampos)
         botonCambiarCartas.grid(row=4, column=0, padx=10, pady=10, sticky="sw") # rowspan=2,
 
-        # Boton de Ordenar Cartas
-        botonOrdenar = tk.Button(frame_superior, text='Ordenar Cartas', bg="gray", bd=5, height=1, width=15, command=self.ordenarCartas)
-        botonOrdenar.grid(row=3, column=0, padx=10, pady=10, sticky="sw") #rowspan=2,
+        # Botón de Tocar
+        botonTocar = tk.Button(frame_superior, text='Tocar', bg="gray", bd=5, height=1, width=15, command=self.crearCampoTocar)
+        botonTocar.grid(row=3, column=0, padx=10, pady=10, sticky="sw")  # Alinear arriba
 
         # Botón de Tirar
         botonTirar = tk.Button(frame_superior, text='Tirar', bg="gray", bd=5, height=3, width=10, command=self.tirar)
-        botonTirar.grid(row=0, column=2, padx=10, pady=10, sticky="n")  # Alinear arriba
+        botonTirar.grid(row=0, column=4, padx=10, pady=10, sticky="n")  # Alinear arriba
 
         # Botón de Arrastrar
         botonArrastrar = tk.Button(frame_superior, text='Arrastrar', bg="gray", bd=5, height=3, width=10, command=self.arrastrar)
-        botonArrastrar.grid(row=0, column=3, padx=10, pady=10, sticky="n")  # Alinear arriba
+        botonArrastrar.grid(row=0, column=3, padx=0, pady=10, sticky="n")  # Alinear arriba
         botonArrastrar.config(state=tk.DISABLED)
 
-        # Botón de Tocar
-        botonTocar = tk.Button(frame_superior, text='Tocar', bg="gray", bd=5, height=3, width=10, command=self.tocar)
-        botonTocar.grid(row=0, column=4, padx=10, pady=10, sticky="n")  # Alinear arriba
+        # Boton de Ordenar Cartas
+        botonOrdenar = tk.Button(frame_superior, text='Ordenar Cartas', bg="gray", bd=5, height=3, width=15, command=self.ordenarCartas)
+        botonOrdenar.grid(row=0, column=5, padx=10, pady=10, sticky="n") #row=0, column=2, padx=10, pady=10, sticky="n"
 
         # Botón de Bajarse
         botonBajarse = tk.Button(frame_superior, text='Bajarse', bg="gray", bd=5, height=3, width=10, command=self.bajarse)
-        botonBajarse.grid(row=0, column=5, padx=10, pady=10, sticky="n")  # Alinear arriba
+        botonBajarse.grid(row=0, column=2, padx=10, pady=10, sticky="n")  # Alinear arriba
 
         # Botón de Coger Carta Tirada
         botonCogerCarta = tk.Button(frame_superior, text='Coger Carta Tirada', bg="gray", bd=5, height=3, width=15, command=self.coger_carta)
@@ -122,6 +122,51 @@ class Apuntado:
 
         self.comenzarNuevoJuego()
     
+    def crearCampoTocar(self):
+        '''se crea la lista desplegable, donde el usuario ingresará el número de cartas con las que quier tocar
+        (se le debe especificar que esta(s) carta(s) son las primeras 2 (a lo sumo) de su mazo)'''
+
+        global lista_tocar, juego, j, botonTocar, habilitarTocar, frame_superior, botonT
+
+        botonTocar.config(state='disabled')
+        habilitarTocar = True
+
+        print('las cartas con las que quieres tocar, deben estar en la(s) primera(s) posicion(es) de tu mano')
+        lista_tocar = ttk.Combobox(frame_superior, width = 3, values=[1,2], state="readonly")
+        lista_tocar.set(1)  # Establece el valor predeterminado
+        lista_tocar.grid(row=3, column=1, padx=10, pady=10, sticky="sw")
+
+        # Boton para Tocar
+        botonT = tk.Button(frame_superior, text='Tocar', bg="gray", bd=5, height=1, width=15, command=self.tocar)
+        botonT.grid(row=3, column=2, padx=10, pady=10, sticky="sw")
+
+        botonTocar.config(state="disabled")
+
+    def tocar(self): # validar cuando el jugador tenga suficientes puntos para tocar con la(s) carta(s) elegidas
+        global juego, j, habilitarTocar, partida, botonT
+
+        cartas_tocar = int(lista_tocar.get())
+        if len(juego.getJugadores()[j].getMano()) == 10:
+            if cartas_tocar == 1:
+                if partida.getDealer().validarTocar(juego.getJugadores()[j], juego.getJugadores()[j].getMano()[0]):
+                    self.acabaPartida()
+                else:
+                    print('todavía no puedes tocar con esa carta')
+            elif cartas_tocar == 2:
+                if partida.getDealer().validarTocar(juego.getJugadores()[j], 
+                                                    juego.getJugadores()[j].getMano()[0], juego.getJugadores()[j].getMano()[1]):
+                    self.acabaPartida()
+                else:
+                    print('todavía no puedes tocar con esas dos cartas')
+        else:
+            print('debes tener 10 cartas para tocar')
+        # se eliminan los objetos de cambiar cartas
+        lista_tocar.destroy()
+        botonT.destroy()
+        habilitarTocar = False
+
+        botonTocar.config(state="normal")
+
     def habilitarCampos(self):
         '''se crean las dos listas desplegables para que el usuario ingrese las cartas que quiere intercambiar 
         de su mano, y el boton 'swap', que llama al metodo para intercambiar las cartas seleccionadas'''
@@ -166,6 +211,24 @@ class Apuntado:
         botonCambiarCartas.config(state="normal")
         self.mostrar_cartas_jugador(juego.getJugadores()[j], True)
 
+    def acabaPartida(self):
+        global botonTocar, juego, frame_inferior, j, subframeCartaTirada, partida
+
+        otros_jugadores = juego.getJugadores()[:j] + juego.getJugadores()[j+1:]
+        partida.getDealer().comprobarManos(juego.getJugadores()[j], otros_jugadores) # Método que comprueba las manos del ganador, y los otros jugadores de la partida
+
+        for widget in frame_inferior.winfo_children(): # se borra todo lo que esté en el frame inferior
+            widget.destroy()
+            
+        for jugador in juego.getJugadores():
+            jugador.setGanador(False) # se actualizan los valores de ganador para todos los jugadores
+            jugador.setCartaTirada(None) # se pone None en el atributo de carta tirada de los jugadores
+
+        juego.getJugadores()[j].setGanador(True) # se pone un valor de True en el atributo ganador del jugador
+
+        subframeCartaTirada.destroy() # FALTA destruir todo lo del frame
+        self.comenzarNuevaPartida()
+        
     def comenzarNuevoJuego(self):
         '''se crea un juego (por defecto de 5 jugadores), y se randomiza el orden de la lista de jugadores'''
 
@@ -488,14 +551,14 @@ class Apuntado:
         else:
             print('debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada')
 
-    def tocar(self):
+    '''def tocar(self):
         # agregar aquí lo que pasará al hacer click en el botón 'tocar'
         global juego, j, partida
         accion = 'tocar'
         carta1, carta2 = juego.getJugadores()[j].getMano()[0], juego.getJugadores()[j].getMano()[1]
         #if partida.getDealer().validarTocar(juego.getJugadores()[j], carta1, carta2)
         pass
-
+'''
     def bajarse(self):
         '''acá se actualizará el valor del puntaje de cada uno de los juagdores, y se comenzará una nueva partida
         (falta validar quien gana el juego y quien sale de él)'''
@@ -503,7 +566,7 @@ class Apuntado:
         global botonTocar, juego, frame_inferior, j, subframeCartaTirada, partida
 
         accion = 'bajarse'
-        if partida.getDealer().validarBajarse(juego.getJugadores()[j]): # con esta función se debe garantizar que el jugador se puede bajar
+        if partida.getDealer().validarBajarse(juego.getJugadores()[j]): # con esta función se garantiza que el jugador se puede bajar
             otros_jugadores = juego.getJugadores()[:j] + juego.getJugadores()[j+1:]
             partida.getDealer().comprobarManos(juego.getJugadores()[j], otros_jugadores) # Método que comprueba las manos del ganador, y los otros jugadores de la partida
 

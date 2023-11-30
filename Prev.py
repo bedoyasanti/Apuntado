@@ -60,8 +60,8 @@ class Previous:
 
         MultijugadorBtn = Button(self.frameMultijugador, text = "Jugar multijugador", font = ("Fixedsys"), relief = GROOVE, bg = "#005c00", cursor = "hand2", activebackground = "#006600", command = self.jugarMultijugador)
         MultijugadorBtn.pack(fill=X, pady= 10)
-        #MultijugadorBtn.bind("<Enter>", lambda event: self.onhover(MultijugadorBtn))
-        #MultijugadorBtn.bind("<Leave>", lambda event: self.outhover(MultijugadorBtn))
+        MultijugadorBtn.bind("<Enter>", lambda event: self.onhover(MultijugadorBtn))
+        MultijugadorBtn.bind("<Leave>", lambda event: self.outhover(MultijugadorBtn))
 
         self.frameMultijugador.pack(side = RIGHT, padx=(0,150))
 
@@ -125,7 +125,7 @@ class Previous:
         pass
     
     def jugarMultijugador(self):
-        Apuntado('Classic')
+        Apuntado(self.estiloCartas)
         self.root.destroy()
 
     def verEstilos(self):

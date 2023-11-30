@@ -161,7 +161,7 @@ class Dealer:
                 Mano[Mano.index(carta2)] = Carta("Replaced", "20")
             else:
                 pts = carta1.getValor()
-                Mano[Mano.index(carta1)] = Carta("Replaced", "20")
+                Mano[Mano.index(carta1)] = Carta("Replaced", "20") # Error mugroso
         if carta2 == None:
             if Reglas.septima_1_7(Mano):
                 Mano[0], Mano[1], Mano[2], Mano[3], Mano[4], Mano[5], Mano[6] = Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20")

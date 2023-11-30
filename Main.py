@@ -647,4 +647,3 @@ class Apuntado:
         else:
             print('debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada')
 
-Apuntado('Classic')

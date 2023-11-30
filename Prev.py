@@ -1,14 +1,13 @@
 from tkinter import *
 from tkinter import ttk
-from PIL import ImageTk
-from PIL import Image
 from Main import Apuntado
 from Src.Packages.Usuario import Usuario
 
 class Previous:
-    def __init__(self):
+    def __init__(self, user: Usuario):
         self.estiloCartas = "Classic"
-        
+        self.usuario = user
+
         with open("Src\Packages\Registros.txt") as Registro:
             reader = Registro.readlines()
         
@@ -16,7 +15,7 @@ class Previous:
         
 
         self.root = Tk()
-        self.root.title(f"Apuntado - Mario")
+        self.root.title(f"Apuntado")
         self.root.geometry("800x400")
         self.notebook = ttk.Notebook(self.root)
 
@@ -135,7 +134,27 @@ class Previous:
         pass
 
     def comprarTokens(self):
-        pass
+        def aceptar():
+            self.usuario.sumTokens(int(spinbox.get()))
+            root.destroy()
+        root = Tk()
+        root.title("Compra de tokens")
+
+        cont1 = Frame(root)
+
+        CTQ = Label(cont1, text = "Cuantos tokens quieres?")
+        CTQ.pack(side = LEFT)
+        
+        spinbox = Spinbox(cont1, from_= 10, to=500, increment=10, width=5)
+        spinbox.pack(side = RIGHT)
+
+        cont1.pack(pady = (30,0))
+
+        Aceptarbtn = Button(root, text = "Aceptar", command=aceptar)
+        Aceptarbtn.pack(pady = 20)
+
+        root.mainloop()
+
 
     def onhover(self, btn: Button):
         btn["bg"] = "#258d19"
@@ -144,4 +163,3 @@ class Previous:
         btn["bg"] = "#005c00"
 
 
-Previous()

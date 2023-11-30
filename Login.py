@@ -5,6 +5,7 @@ from Prev import Previous
 from Src.Packages.Usuario import Usuario
 from datetime import date
 from Prev import Previous
+import sys
 
 class Login:
     def __init__(self):
@@ -64,13 +65,12 @@ class Login:
 
         self.Registrarbtn = Button(self.mainFrame, text="Registrar", font=("Times", 15, "bold"), bg="#52a5e0", bd=0, fg="#fff", command=self.registrar)
         self.Registrarbtn.pack(fill=X, padx=20, pady=20)
-        self.Registrarbtn.bind("<Enter>", lambda event: self.buttonhover(self.Iniciarbtn))
-        self.Registrarbtn.bind("<Leave>", lambda event: self.buttonhover_leave(self.Iniciarbtn))
+        self.Registrarbtn.bind("<Enter>", lambda event: self.buttonhover(self.Registrarbtn))
+        self.Registrarbtn.bind("<Leave>", lambda event: self.buttonhover_leave(self.Registrarbtn))
 
         self.root.mainloop()
     
     def iniciarSesion(self):
-        # Verificación de credenciales de usuario
         Nick = self.Nicktxt.get()
         Pwd = self.Pwdtxt.get()
         exist = False
@@ -83,12 +83,119 @@ class Login:
                 messagebox.showerror(message="Contraseña incorrecta", title="Error")
                 self.Pwd.set("")
             else:
-                Previous()
+                self.root.destroy()
+                Previous(usuario)
         else:
             messagebox.showerror(message="Usuario no registrado", title="Error")
 
     def registrar(self):
-        pass
+        def registro():
+            nick = nickTxt.get()
+            name = nombreTxt.get()
+            fechaNac = fechaNacTxt.get()
+            pwd = contraseñaTxt.get()
+            try:
+                if nick == "" or name == "" or fechaNac == "" or pwd == "":
+                    messagebox.showerror("Error", "Complete todos los campos")
+                    raise Exception("e")
+                else:
+                    for usuario in self.__registro:
+                        if usuario.getNick() == nick:
+                            messagebox.showerror("Error", "Usuario ya registrado")
+                            raise Exception("e")
+                    try:
+                        fsplit = fechaNac.split("/")
+                    except:
+                        messagebox.showerror("Error", "Ingrese una fecha válida")
+                        raise Exception("e")
+                    try:
+                        dd = int(fsplit[0])
+                    except:
+                        messagebox.showerror("Error", "Ingrese una fecha válida")
+                        raise Exception("e")
+                    try:
+                        mm = int(fsplit[1])
+                    except:
+                        messagebox.showerror("Error", "Ingrese una fecha válida")
+                        raise Exception("e")
+                    try:
+                        aa = int(fsplit[2])
+                    except:
+                        messagebox.showerror("Error", "Ingrese una fecha válida")
+                        raise Exception("e")
+
+                    fecha_nacimiento = date(aa,mm,dd)
+                    fecha_actual = date.today()
+
+                    if fecha_actual.month < fecha_nacimiento.month:
+                        tt = 1
+                    elif fecha_actual.month == fecha_nacimiento.month:
+                        if fecha_actual.day < fecha_nacimiento.day:
+                            tt = 1
+                        else:
+                            tt = 0
+                    else:
+                        tt = 0
+
+                    edad = fecha_actual.year - fecha_nacimiento.year - tt
+                    if edad < 18:
+                        messagebox.showerror("Error", "No puedes registrarte, eres menor de edad")
+                    else:
+                        self.__registro.append(Usuario(nick,name,fecha_nacimiento,pwd))
+                        nueva = []
+                        for usuario in self.__registro:
+                            nombre = usuario.getNombre()
+                            nickname = usuario.getNick()
+                            fecha = usuario.getFechaNac()
+                            pw = usuario.getContraseña()
+                            tokens = usuario.getTokens()
+                            nueva.append(f"{nickname},{nombre},{fecha},{pw},{tokens}")
+                        towrite = "\n".join(nueva)
+                        with open("Src/Packages/Registros.txt", "w") as R:
+                            R.write(towrite)
+                        root.destroy()
+            except:
+                pass
+        root = Tk()
+        root.title("Registro")
+        
+        F1 = Frame(root)
+        nickLbl = Label(F1, text = "Nickname", font=("Times",12))
+        nickLbl.pack(side = LEFT, pady = (15,0), padx = (20,0))
+
+        nombreLbl = Label(F1, text = "Nombre", font=("Times",12))
+        nombreLbl.pack(side = RIGHT, pady = (15,0), padx = (0, 130))
+        F1.pack(fill = X)
+
+        F2 = Frame(root)
+        nickTxt = Entry(F2, font=("Times", 12))
+        nickTxt.pack(side=LEFT, pady = 10, padx = (20,10))
+
+        nombreTxt = Entry(F2, font=("Times", 12))
+        nombreTxt.pack(side = RIGHT, pady = 10, padx = (10,20))
+
+        F2.pack(fill = X)
+
+        F3 = Frame(root)
+        fechaNacLbl = Label(F3, text = "Fecha de nacimiento\n(dd/mm/aa)", font=("Times",12), justify = LEFT)
+        fechaNacLbl.pack(side = LEFT, padx = (0,55))
+
+        contraseñaLbl = Label(F3, text = "Contraseña", font=("Times",12))
+        contraseñaLbl.pack(side = RIGHT, pady = (30,0), padx = (0, 95))
+        F3.pack()
+
+        F4 = Frame(root)
+        fechaNacTxt = Entry(F4, font=("Times", 12))
+        fechaNacTxt.pack(side = LEFT, pady = 5, padx = (20,10))
+
+        contraseñaTxt = Entry(F4, font=("Times", 12))
+        contraseñaTxt.pack(side = RIGHT, pady = 5, padx = (10,20))
+        F4.pack()
+        
+        registrarseBtn = Button(root, text = "Registrarse", command= lambda: registro())
+        registrarseBtn.pack(padx=(280,0), pady= (10,20))
+
+        root.mainloop()
         
     def buttonhover(self, btn: Button):
         btn["bg"] = "#0F5A90"

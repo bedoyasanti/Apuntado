@@ -528,18 +528,31 @@ class Apuntado:
                 botonT.destroy()
                 habilitarTocar = False
             turno1 = False'''
-
-        if self.widget_existe(lista_desplegable1):
-            lista_desplegable1.destroy()
-        if self.widget_existe(lista_desplegable2):
-            lista_desplegable2.destroy()
-        if self.widget_existe(botonSwap):
-            botonSwap.destroy()
-
-        if self.widget_existe(lista_tocar):
-            lista_tocar.destroy()
-        if self.widget_existe(botonT):
-            botonT.destroy()
+        try:
+            if self.widget_existe(lista_desplegable1):
+                lista_desplegable1.destroy()
+        except:
+            pass
+        try:
+            if self.widget_existe(lista_desplegable2):
+                lista_desplegable2.destroy()
+        except:
+            pass
+        try:
+            if self.widget_existe(botonSwap):
+                botonSwap.destroy()
+        except:
+            pass
+        try:
+            if self.widget_existe(lista_tocar):
+                lista_tocar.destroy()
+        except:
+            pass
+        try:
+            if self.widget_existe(botonT):
+                botonT.destroy()
+        except:
+            pass
         
         botonCambiarCartas.config(state="normal")
         self.mostrar_cartas_jugador(jugador, False)

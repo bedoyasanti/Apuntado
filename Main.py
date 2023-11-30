@@ -19,8 +19,9 @@ class Apuntado:
         self.root = tk.Tk()
         iconp = Image.open('Src/img/Classic/Clubs/ClubsA.png')
         iconPhoto = ImageTk.PhotoImage(iconp)
-        self.root.title("Apuntado")
         self.root.iconphoto(False, iconPhoto)
+
+        self.root.title("Apuntado")
 
         accion = ''
         # Configurar el frame superior (verde)
@@ -98,7 +99,7 @@ class Apuntado:
         # Botón de Arrastrar
         botonArrastrar = tk.Button(frame_superior, text='Arrastrar', bg="gray", bd=5, height=3, width=10, command=self.arrastrar)
         botonArrastrar.grid(row=0, column=3, padx=0, pady=10, sticky="n")  # Alinear arriba
-        botonArrastrar.config(state=tk.DISABLED)
+        #botonArrastrar.config(state=tk.DISABLED)
 
         # Boton de Ordenar Cartas
         botonOrdenar = tk.Button(frame_superior, text='Ordenar Cartas', bg="gray", bd=5, height=3, width=15, command=self.ordenarCartas)
@@ -122,13 +123,21 @@ class Apuntado:
 
         self.comenzarNuevoJuego()
     
+    def widget_existe(self, widget):
+        global lista_desplegable1, lista_desplegable1, lista_tocar, botonSwap, botonT, boton
+        try:
+            widget.winfo_exists()  # Intenta obtener información sobre el widget
+            return True
+        except: #tk.NameError
+            return False
+        
     def crearCampoTocar(self):
         '''se crea la lista desplegable, donde el usuario ingresará el número de cartas con las que quier tocar
         (se le debe especificar que esta(s) carta(s) son las primeras 2 (a lo sumo) de su mazo)'''
 
         global lista_tocar, juego, j, botonTocar, habilitarTocar, frame_superior, botonT
 
-        botonTocar.config(state='disabled')
+        botonTocar.config(state='disabled') # SI 
         habilitarTocar = True
 
         print('las cartas con las que quieres tocar, deben estar en la(s) primera(s) posicion(es) de tu mano')
@@ -140,7 +149,7 @@ class Apuntado:
         botonT = tk.Button(frame_superior, text='Tocar', bg="gray", bd=5, height=1, width=15, command=self.tocar)
         botonT.grid(row=3, column=2, padx=10, pady=10, sticky="sw")
 
-        botonTocar.config(state="disabled")
+        botonTocar.config(state="disabled") # SI
 
     def tocar(self): # validar cuando el jugador tenga suficientes puntos para tocar con la(s) carta(s) elegidas
         global juego, j, habilitarTocar, partida, botonT
@@ -148,15 +157,26 @@ class Apuntado:
         cartas_tocar = int(lista_tocar.get())
         if len(juego.getJugadores()[j].getMano()) == 10:
             if cartas_tocar == 1:
-                if partida.getDealer().validarTocar(juego.getJugadores()[j], juego.getJugadores()[j].getMano()[0]):
+                M = juego.getJugadores()[j].getMano().copy()
+                Mano = M.copy()
+                Mano.append(Mano.pop(0))
+                juego.getJugadores()[j].setMano(Mano)
+                if partida.getDealer().validarTocar(juego.getJugadores()[j], Mano[-1]):
                     self.acabaPartida()
                 else:
+                    juego.getJugadores()[j].setMano(M)
                     print('todavía no puedes tocar con esa carta')
             elif cartas_tocar == 2:
+                M = juego.getJugadores()[j].getMano().copy() # se crea una copia de la mano del jugador (para reasignarsela al jugador si no se puede tocar)
+                Mano = M.copy() # se crea una copia de la copia inicial
+                Mano.append(Mano.pop(0)) # se pone como ultima carta la primera
+                Mano.append(Mano.pop(0)) # se pone como ultima carta la primera
+                juego.getJugadores()[j].setMano(Mano) # se actualiza la mano del jugador con la mano modificada
                 if partida.getDealer().validarTocar(juego.getJugadores()[j], 
-                                                    juego.getJugadores()[j].getMano()[0], juego.getJugadores()[j].getMano()[1]):
+                                                    Mano[-1], Mano[-2]):
                     self.acabaPartida()
                 else:
+                    juego.getJugadores()[j].setMano(M) # en caso de que no se pueda tocar, se le vuelve a asignar la misma mano incial
                     print('todavía no puedes tocar con esas dos cartas')
         else:
             print('debes tener 10 cartas para tocar')
@@ -173,7 +193,7 @@ class Apuntado:
 
         global lista_desplegable1, lista_desplegable2, botonSwap, juego, j, habilitar, botonCambiarCartas
 
-        botonCambiarCartas.config(state="disabled")
+        botonCambiarCartas.config(state="disabled") # SI
         habilitar = True
         valores = list(range(1, (len(juego.getJugadores()[j].getMano()) + 1)))
         lista_desplegable1 = ttk.Combobox(frame_superior, width = 3, values=valores, state="readonly")
@@ -272,10 +292,10 @@ class Apuntado:
             #while True:
         
         # el jugador que comienza la partida, solo puede tirar carta
-        botonCogerCarta.config(state=tk.DISABLED)
-        botonArrastrar.config(state=tk.DISABLED)
-        botonTocar.config(state=tk.DISABLED)
-        botonBajarse.config(state=tk.DISABLED)
+        botonCogerCarta.config(state=tk.DISABLED) # SI
+        botonArrastrar.config(state=tk.DISABLED) # SI
+        botonTocar.config(state=tk.DISABLED) # SI
+        botonBajarse.config(state=tk.DISABLED) # SI
 
         turno1 = True # para verificar si es el primer turno de una partida
         self.actualizarTablaPuntajes()
@@ -448,10 +468,10 @@ class Apuntado:
 
         # Agregar la referencia del botón a la lista, deshabilitar el boton y destruir el frame de carta adicional
         botones.append(boton)
-        botonCogerCarta.config(state=tk.DISABLED)
-        botonArrastrar.config(state=tk.DISABLED)
-        botonTocar.config(state=tk.DISABLED)
-        botonBajarse.config(state=tk.DISABLED)
+        botonCogerCarta.config(state=tk.DISABLED) # SI
+        botonArrastrar.config(state=tk.DISABLED) # SI
+        botonTocar.config(state=tk.DISABLED) # SI
+        botonBajarse.config(state=tk.DISABLED) # SI
 
         # actualizo el valor de carta tirada del jugador, y elimino el frame
         juego.getJugadores()[j].setCartaTirada(None)
@@ -477,10 +497,7 @@ class Apuntado:
 
         carta_seleccionada = carta
 
-    def cambiarCartas(self):
-        pass
 
-    
     def ordenarCartas(self):
         global j, juego, ordenar
 
@@ -496,17 +513,34 @@ class Apuntado:
 
 
     def siguienteTurno(self, jugador):
-        global lista_desplegable1, lista_desplegable2, botonSwap, habilitar, turno1
-
+        global lista_desplegable1, lista_desplegable2, botonSwap, habilitar, habilitarTocar, turno1
+        global botonT, listaTocar
         # se eliminan los objetos de cambiar cartas
-        if not turno1:
+        '''if not turno1:
             if habilitar: # habilitar es para verificar si el jugador dio click en el botón de intercambiar cartas, y si es así, se eliminan las listas desplegables y el boton
                 lista_desplegable1.destroy()
                 lista_desplegable2.destroy()
                 botonSwap.destroy()
                 habilitar = False
-                turno1 = False
 
+            if habilitarTocar:
+                lista_tocar.destroy()
+                botonT.destroy()
+                habilitarTocar = False
+            turno1 = False'''
+
+        if self.widget_existe(lista_desplegable1):
+            lista_desplegable1.destroy()
+        if self.widget_existe(lista_desplegable2):
+            lista_desplegable2.destroy()
+        if self.widget_existe(botonSwap):
+            botonSwap.destroy()
+
+        if self.widget_existe(lista_tocar):
+            lista_tocar.destroy()
+        if self.widget_existe(botonT):
+            botonT.destroy()
+        
         botonCambiarCartas.config(state="normal")
         self.mostrar_cartas_jugador(jugador, False)
 
@@ -533,7 +567,8 @@ class Apuntado:
                 
 
     def arrastrar(self):
-        # agregar aquí lo que pasará al hacer click en el botón 'arrastrar'
+        '''instrucciones cada que el jugador arrastra una carta'''
+
         accion = 'arrastrar'
         global carta_seleccionada, j, num_jugadores_juego, juego, partida
 

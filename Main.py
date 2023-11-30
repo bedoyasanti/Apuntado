@@ -55,6 +55,7 @@ class Apuntado:
         global frame_inferior, frame_superior, altura_seccion, ancho_seccion, frame_puntajes
         global label_carta_seleccionada, label_carta_seleccionada2, label_num_partida, label_num_jugador
         global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, botonCambiarCartas
+        global lista_desplegable1, lista_desplegable2, lista_tocar
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -124,7 +125,7 @@ class Apuntado:
         self.comenzarNuevoJuego()
     
     def widget_existe(self, widget):
-        global lista_desplegable1, lista_desplegable1, lista_tocar, botonSwap, botonT, boton
+        global lista_desplegable1, lista_desplegable1, lista_tocar, botonSwap, botonT
         try:
             widget.winfo_exists()  # Intenta obtener información sobre el widget
             return True

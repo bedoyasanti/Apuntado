@@ -97,6 +97,10 @@ class Dealer:
     def validarBajarse(self, jugador: Jugador):         ### Método para validar si un jugador se puede bajar ###
         M = jugador.getMano()
         Mano = M.copy()
+
+        if Reglas.pinta(Mano):
+            Mano[0], Mano[1], Mano[2], Mano[3], Mano[4], Mano[5], Mano[6], Mano[7], Mano[8], Mano[9] = Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20")
+
         if Reglas.septima_1_7(Mano):
             Mano[0], Mano[1], Mano[2], Mano[3], Mano[4], Mano[5], Mano[6] = Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20"), Carta("Replaced", "20")
         if Reglas.septima_4_10(Mano):

@@ -162,7 +162,7 @@ class Apuntado:
                 Mano.append(Mano.pop(0))
                 juego.getJugadores()[j].setMano(Mano)
                 if partida.getDealer().validarTocar(juego.getJugadores()[j], Mano[-1]):
-                    self.acabaPartida()
+                    self.acabaPartida(1)
                 else:
                     juego.getJugadores()[j].setMano(M)
                     print('todavía no puedes tocar con esa carta')
@@ -174,7 +174,7 @@ class Apuntado:
                 juego.getJugadores()[j].setMano(Mano) # se actualiza la mano del jugador con la mano modificada
                 if partida.getDealer().validarTocar(juego.getJugadores()[j], 
                                                     Mano[-1], Mano[-2]):
-                    self.acabaPartida()
+                    self.acabaPartida(2)
                 else:
                     juego.getJugadores()[j].setMano(M) # en caso de que no se pueda tocar, se le vuelve a asignar la misma mano incial
                     print('todavía no puedes tocar con esas dos cartas')
@@ -231,12 +231,15 @@ class Apuntado:
         botonCambiarCartas.config(state="normal")
         self.mostrar_cartas_jugador(juego.getJugadores()[j], True)
 
-    def acabaPartida(self):
+    def acabaPartida(self, cantTocar: int = 0):
         global botonTocar, juego, frame_inferior, j, subframeCartaTirada, partida
 
         otros_jugadores = juego.getJugadores()[:j] + juego.getJugadores()[j+1:]
-        partida.getDealer().comprobarManos(juego.getJugadores()[j], otros_jugadores) # Método que comprueba las manos del ganador, y los otros jugadores de la partida
 
+        if cantTocar != 0:
+            partida.getDealer().comprobarManos(juego.getJugadores()[j], otros_jugadores, cantTocar) # Método que comprueba las manos del ganador, y los otros jugadores de la partida
+        else:
+            partida.getDealer().comprobarManos(juego.getJugadores()[j], otros_jugadores)
         for widget in frame_inferior.winfo_children(): # se borra todo lo que esté en el frame inferior
             widget.destroy()
             

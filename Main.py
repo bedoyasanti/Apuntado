@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 from tkinter import *
 from PIL import ImageTk
 from PIL import Image
@@ -9,6 +10,7 @@ from Src.Packages.Dealer import Dealer
 import colorsys
 from random import shuffle, choice
 import sys
+import time
 
 class Apuntado:
 
@@ -25,13 +27,22 @@ class Apuntado:
 
         accion = ''
         # Configurar el frame superior (verde)
-        self.frame_info = tk.Frame(self.root, bg="green", height=300, width=600)
-        self.frame_info.pack(fill="both", expand=True, padx=4, pady=4)
+        self.frame_info = tk.Frame(self.root, bg="green", height=300, width=600, bd=5, relief="ridge")
+        self.frame_info.pack(padx=10, pady=10)
 
-        self.boton_comenzar = tk.Button(self.frame_info, bg='red', text='Comenzar Juego', 
-                                command=self.start, height=5, width=25)
-        self.boton_comenzar.pack(padx = 80, pady = 30)
-        self.boton_comenzar.pack()
+        # Configurar la lista de jugadores posibles
+        lista_cant_jug = list(range(2, 7))
+        self.lista_jugadores = ttk.Combobox(self.frame_info, width=3, values=lista_cant_jug, state="readonly")
+        self.lista_jugadores.set(2)  # Establece el valor predeterminado
+        self.lista_jugadores.grid(row=0, column=1, padx=10, pady=10, sticky="sw")
+
+        # Configurar el label de jugadores
+        self.labelJugadores_iniciales = tk.Label(self.frame_info, width=40, text='Elige la cantidad de jugadores de la partida:', font=("Arial", 12, "bold"))
+        self.labelJugadores_iniciales.grid(row=0, column=0, padx=10, pady=10, sticky="sw")
+
+        # Configurar el boton de comenzar
+        self.boton_comenzar = tk.Button(self.frame_info, bg='red', text='Comenzar Juego', command=self.start, height=2, width=30, font=("Helvetica", 14, "italic bold"), bd=3, relief="raised")
+        self.boton_comenzar.grid(row=1, column=0, padx=10, columnspan=2, pady=10)
 
         self.root.mainloop()
 
@@ -52,10 +63,12 @@ class Apuntado:
     def start(self):
         '''Se crea la interfaz de juego'''
 
-        global frame_inferior, frame_superior, altura_seccion, ancho_seccion, frame_puntajes
+        global frame_inferior, frame_superior, altura_seccion, ancho_seccion, frame_puntajes, label_info_general
         global label_carta_seleccionada, label_carta_seleccionada2, label_num_partida, label_num_jugador
         global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, botonCambiarCartas
-        global lista_desplegable1, lista_desplegable2, lista_tocar
+        global lista_desplegable1, lista_desplegable2, lista_tocar, num_jugadores_juego
+
+        num_jugadores_juego = int(self.lista_jugadores.get())
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -67,6 +80,10 @@ class Apuntado:
         frame_inferior = tk.Frame(self.root, bg="gray", height=200, width=1300)
         frame_inferior.pack(fill="both", expand=True, padx=4, pady=4)
 
+
+        label_info_general = tk.Label(frame_superior, bg='darkgreen', text='info general', height=3, width=40)
+        label_info_general.grid(row=2, column=4, columnspan = 2, rowspan = 3, padx=5, pady=5)
+        
         ### Labels
         # label de info partida
         label_info_partida = tk.Label(frame_superior, bg='darkgray', text='Partida #', height=3, width=10, bd=5, relief="solid")
@@ -136,12 +153,14 @@ class Apuntado:
         '''se crea la lista desplegable, donde el usuario ingresará el número de cartas con las que quier tocar
         (se le debe especificar que esta(s) carta(s) son las primeras 2 (a lo sumo) de su mazo)'''
 
-        global lista_tocar, juego, j, botonTocar, habilitarTocar, frame_superior, botonT
+        global lista_tocar, juego, j, botonTocar, habilitarTocar, frame_superior, botonT, label_info_general
 
         botonTocar.config(state='disabled') # SI 
         habilitarTocar = True
 
-        print('las cartas con las que quieres tocar, deben estar en la(s) primera(s) posicion(es) de tu mano')
+        texto = 'las cartas con las que quieres tocar, deben estar\nen la(s) primera(s) posicion(es) de tu mano'
+        label_info_general.config(text = texto)
+        self.root.after(4000, lambda: label_info_general.config(text = ''))
         lista_tocar = ttk.Combobox(frame_superior, width = 3, values=[1,2], state="readonly")
         lista_tocar.set(1)  # Establece el valor predeterminado
         lista_tocar.grid(row=3, column=1, padx=10, pady=10, sticky="sw")
@@ -153,7 +172,7 @@ class Apuntado:
         botonTocar.config(state="disabled") # SI
 
     def tocar(self): # validar cuando el jugador tenga suficientes puntos para tocar con la(s) carta(s) elegidas
-        global juego, j, habilitarTocar, partida, botonT
+        global juego, j, habilitarTocar, partida, botonT, label_info_general
 
         cartas_tocar = int(lista_tocar.get())
         if len(juego.getJugadores()[j].getMano()) == 10:
@@ -162,25 +181,43 @@ class Apuntado:
                 Mano = M.copy()
                 Mano.append(Mano.pop(0))
                 juego.getJugadores()[j].setMano(Mano)
+                if (juego.getJugadores()[j].getPuntaje() + Mano[-1].getValor()) >= 101:
+                    texto = f'no puedes tocar con esa carta, tienes {juego.getJugadores()[j].getPuntaje()} puntos'
+                    label_info_general.config(text = texto)
+                    self.root.after(6000, lambda: label_info_general.config(text = ''))
+                    return
+                
                 if partida.getDealer().validarTocar(juego.getJugadores()[j], Mano[-1]):
                     self.acabaPartida(1)
                 else:
                     juego.getJugadores()[j].setMano(M)
-                    print('todavía no puedes tocar con esa carta')
+                    texto = 'tu mano no es válida para tocar'
+                    label_info_general.config(text = texto)
+                    self.root.after(6000, lambda: label_info_general.config(text = ''))
             elif cartas_tocar == 2:
                 M = juego.getJugadores()[j].getMano().copy() # se crea una copia de la mano del jugador (para reasignarsela al jugador si no se puede tocar)
                 Mano = M.copy() # se crea una copia de la copia inicial
                 Mano.append(Mano.pop(0)) # se pone como ultima carta la primera
                 Mano.append(Mano.pop(0)) # se pone como ultima carta la primera
                 juego.getJugadores()[j].setMano(Mano) # se actualiza la mano del jugador con la mano modificada
+                if (juego.getJugadores()[j].getPuntaje() + Mano[-1].getValor() + Mano[-2].getValor()) >= 101:
+                    texto = f'no puedes tocar con esas cartas, tienes {juego.getJugadores()[j].getPuntaje()} puntos'
+                    label_info_general.config(text = texto)
+                    self.root.after(4000, lambda: label_info_general.config(text = ''))
+                    return
+                
                 if partida.getDealer().validarTocar(juego.getJugadores()[j], 
                                                     Mano[-1], Mano[-2]):
                     self.acabaPartida(2)
                 else:
                     juego.getJugadores()[j].setMano(M) # en caso de que no se pueda tocar, se le vuelve a asignar la misma mano incial
-                    print('todavía no puedes tocar con esas dos cartas')
+                    texto = 'tu mano no es válida para tocar'
+                    label_info_general.config(text = texto)
+                    self.root.after(4000, lambda: label_info_general.config(text = ''))
         else:
-            print('debes tener 10 cartas para tocar')
+            texto = 'debes tener 10 cartas para tocar'
+            label_info_general.config(text = texto)
+            self.root.after(4000, lambda: label_info_general.config(text = ''))
         # se eliminan los objetos de cambiar cartas
         lista_tocar.destroy()
         botonT.destroy()
@@ -254,12 +291,12 @@ class Apuntado:
         self.comenzarNuevaPartida()
         
     def comenzarNuevoJuego(self):
-        '''se crea un juego (por defecto de 5 jugadores), y se randomiza el orden de la lista de jugadores'''
+        '''se crea un juego, y se randomiza el orden de la lista de jugadores'''
 
-        global j, num_jugadores_juego, juego, numero_partidas
+        global j, num_jugadores_juego, juego, numero_partidas, num_jugadores_juego
 
         ### Se empieza un nuevo juego
-        num_jugadores_juego = 2
+        #num_jugadores_juego = 2
 
         juego = Juego(num_jugadores_juego) # se inicia un juego con (num_jugadores_juego) jugadores
         shuffle(juego.getJugadores()) # se randomiza el orden de la lista de jugadores
@@ -273,18 +310,20 @@ class Apuntado:
         '''se crea una nueva partida, se reparten las cartas y se establece qué jugador empieza de primero'''
 
         global juego, j, partida, numero_partidas, label_num_partida, ganador, mano_inicial, partida
-        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, turno1
+        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, turno1, mazo_auxiliar
 
         numero_partidas += 1
         label_num_partida.config(text = f"{numero_partidas}")
 
         # Crear y mostrar el mensaje temporizado
-        print(f'Partida # {numero_partidas}')
+        #print(f'Partida # {numero_partidas}')
 
         for jugador in juego.getJugadores(): # se actualizan / borran las manos de los jugadores en cada partida
             jugador.setMano(list())
 
         partida = Partida(juego.getJugadores()) # se crea la partida
+
+        mazo_auxiliar = partida.getMazo().copy()
 
         partida.getDealer().repartirCartas(juego.getJugadores(), partida.getMazo(), partida.getBaraja()) # se reparten las cartas
 
@@ -327,15 +366,19 @@ class Apuntado:
     def definirGanador_Perdedores(self):
         '''acá se verificarán cuales jugadores pueden seguir jugando, y cuales no'''
 
-        global juego, j
+        global juego, j, label_info_general
 
         i = 0
         while i != len(juego.getJugadores()): # se sacan lo jugadores con mas de 101 puntos
-            if juego.getJugadores()[i].getPuntaje() >= 101:
-                print(f'Sale el jugador {juego.getJugadores()[i].getnumJugador()}, acumuló {juego.getJugadores()[i].getPuntaje()} puntos')
+            texto = ''
+            if juego.getJugadores()[i].getPuntaje() >= 101: #cambiar
+                texto = texto + f'Sale el jugador {juego.getJugadores()[i].getnumJugador()}, acumuló {juego.getJugadores()[i].getPuntaje()} puntos\n'
                 juego.getJugadores().remove(juego.getJugadores()[i])
             else:
                 i += 1
+            if texto != '':
+                label_info_general.config(text = texto)
+                self.root.after(6000, lambda: label_info_general.config(text = ''))
 
         for jug2 in juego.getJugadores(): # se actualiza el valor de j, variable que itera en la lista de jugadores
             if jug2.isGanador():
@@ -345,17 +388,25 @@ class Apuntado:
         texto = 'Felicidades!!! El ganador del juego es el jugador número'
 
         if len(juego.getJugadores()) == 1: # se valida si queda solo un jugador en el juego
-                print(f'{texto} {juego.getJugadores()[0].getnumJugador()}, el último sobreviviente del juego!!!')
+                texto = f'{texto} {juego.getJugadores()[0].getnumJugador()}, el último sobreviviente del juego!!!'
+                label_info_general.config(text = texto)
+                self.root.after(4000, lambda: label_info_general.config(text = ''))
                 for widget in self.root.winfo_children(): # se borra toda la interfaz FALTA - error
                     widget.destroy()
+
+                messagebox.showinfo('Hay un ganador en la partida!!!', texto)
                 # Salir del programa
                 sys.exit()
 
         for jug in juego.getJugadores():
             if jug.getPuntaje() <= -50:
-                print(f'{texto} {jug.getnumJugador()} acumuló {jug.getPuntaje()} puntos')
+                texto = f'{texto} {jug.getnumJugador()} acumuló {jug.getPuntaje()} puntos'
+                label_info_general.config(text = texto)
+                self.root.after(4000, lambda: label_info_general.config(text = ''))
                 for widget in self.root.winfo_children(): # se borra toda la interfaz
                     widget.destroy()
+
+                messagebox.showinfo('Hay un ganador en la partida!!!', texto)
                 # Salir del programa
                 sys.exit()
 
@@ -377,11 +428,11 @@ class Apuntado:
             botonCambiarCartas.config(state=tk.NORMAL)
         else:
             ### habilitar todos los botones
-            botonTirar.config(state=tk.NORMAL)
-            botonArrastrar.config(state=tk.NORMAL)
-            botonTocar.config(state=tk.NORMAL)
-            botonBajarse.config(state=tk.NORMAL)
-            botonCogerCarta.config(state=tk.NORMAL)
+            #botonTirar.config(state=tk.DISABLED)
+            botonArrastrar.config(state=tk.DISABLED)
+            botonTocar.config(state=tk.DISABLED)
+            botonBajarse.config(state=tk.DISABLED)
+            botonCogerCarta.config(state=tk.DISABLED)
 
         mano_jugador = jugador.getMano()
 
@@ -526,21 +577,10 @@ class Apuntado:
 
 
     def siguienteTurno(self, jugador):
-        global lista_desplegable1, lista_desplegable2, botonSwap, habilitar, habilitarTocar, turno1
+        global lista_desplegable1, lista_desplegable2, botonSwap, habilitar, habilitarTocar, turno1, label_info_general
         global botonT, listaTocar
         # se eliminan los objetos de cambiar cartas
-        '''if not turno1:
-            if habilitar: # habilitar es para verificar si el jugador dio click en el botón de intercambiar cartas, y si es así, se eliminan las listas desplegables y el boton
-                lista_desplegable1.destroy()
-                lista_desplegable2.destroy()
-                botonSwap.destroy()
-                habilitar = False
 
-            if habilitarTocar:
-                lista_tocar.destroy()
-                botonT.destroy()
-                habilitarTocar = False
-            turno1 = False'''
         try:
             if self.widget_existe(lista_desplegable1):
                 lista_desplegable1.destroy()
@@ -567,13 +607,30 @@ class Apuntado:
         except:
             pass
         
+        #time.sleep(5)
+        '''texto = f"Turno del jugador {juego.getJugadores()[j].getnumJugador()}"
+        label_info_general.config(text=texto)
+
+        #time.sleep(5)
+        self.root.after(4000, lambda: label_info_general.config(text = ''))'''
+
+        #self.mostrar_contador(juego.getJugadores()[j].getnumJugador())
+        #time.sleep(1)
+        texto = f"Turno del jugador {juego.getJugadores()[j].getnumJugador()}"
+
+        messagebox.showinfo('Siguiente Turno', texto)
+
+        label_info_general.config(text=texto)
+        self.root.after(4000, lambda: label_info_general.config(text = ''))
+        #time.sleep(4)
+        #self.root.after(4000, lambda: label_info_general.config(text = ''))
         botonCambiarCartas.config(state="normal")
         self.mostrar_cartas_jugador(jugador, False)
 
     def tirar(self):
         '''instrucciones cada que el jugador tira una carta'''
 
-        global carta_seleccionada, j, num_jugadores_juego, juego, ordenar
+        global carta_seleccionada, j, num_jugadores_juego, juego, ordenar, label_info_general
         accion = 'tirar'
         if carta_seleccionada != '':
             if len(juego.getJugadores()[j].getMano()) == 11:
@@ -587,44 +644,45 @@ class Apuntado:
                 ordenar = False
                 self.siguienteTurno(juego.getJugadores()[j])
             else:
-                print('debes tener 11 cartas en tu mano para tirar')
+                texto = 'debes tener 11 cartas en tu mano para tirar'
+                label_info_general.config(text = texto)
+                self.root.after(4000, lambda: label_info_general.config(text = ''))
         else:
-            print('selecciona una carta')
-                
+            texto = 'selecciona una carta primero'
+            label_info_general.config(text = texto)
+            self.root.after(4000, lambda: label_info_general.config(text = ''))
 
-    def arrastrar(self):
+    def arrastrar(self): # FALTA verificar que el mazo no esté casi vacío
         '''instrucciones cada que el jugador arrastra una carta'''
 
         accion = 'arrastrar'
-        global carta_seleccionada, j, num_jugadores_juego, juego, partida
+        global carta_seleccionada, j, num_jugadores_juego, juego, partida, label_info_general, mazo_auxiliar
 
         if len(juego.getJugadores()[j].getMano()) == 10:
             juego.getJugadores()[j].setCartaTirada(None) # se borra la carta que tenía en el atributo de cartaTirada
+            contador = 0
             while True:
+                if contador == 3:
+                    partida.setMazo(mazo_auxiliar)
                 carta = choice(partida.getBaraja().getBaraja())    # Se escoge una carta al azar de una baraja
                 if partida.getMazo()[carta] > 0:                   # Si la carta está disponible en el mazo, es decir si aún hay al menos una carta (en el mazo) de la escogida en una baraja
                     juego.getJugadores()[j].añadirCarta(carta)     # Se le añade la carta al jugador
                     partida.getMazo()[carta] -= 1
-                    print(carta.getPinta(), carta.getDenominacion())
+                    #print(carta.getPinta(), carta.getDenominacion())
                     self.añadir_carta_adicional(carta)
                     break
+                contador += 1
             
         else:
-            print('debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada')
+            texto = 'debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada'
+            label_info_general.config(text = texto)
+            self.root.after(4000, lambda: label_info_general.config(text = ''))
 
-    '''def tocar(self):
-        # agregar aquí lo que pasará al hacer click en el botón 'tocar'
-        global juego, j, partida
-        accion = 'tocar'
-        carta1, carta2 = juego.getJugadores()[j].getMano()[0], juego.getJugadores()[j].getMano()[1]
-        #if partida.getDealer().validarTocar(juego.getJugadores()[j], carta1, carta2)
-        pass
-'''
     def bajarse(self):
         '''acá se actualizará el valor del puntaje de cada uno de los juagdores, y se comenzará una nueva partida
         (falta validar quien gana el juego y quien sale de él)'''
 
-        global botonTocar, juego, frame_inferior, j, subframeCartaTirada, partida
+        global botonTocar, juego, frame_inferior, j, subframeCartaTirada, partida, label_info_general
 
         accion = 'bajarse'
         if partida.getDealer().validarBajarse(juego.getJugadores()[j]): # con esta función se garantiza que el jugador se puede bajar
@@ -644,16 +702,50 @@ class Apuntado:
             self.comenzarNuevaPartida()
 
         else:
-            print('Todavía no te puedes bajar')
+            texto = 'Todavía no te puedes bajar'
+            label_info_general.config(text = texto)
+            self.root.after(4000, lambda: label_info_general.config(text = ''))
     
     def coger_carta(self):
         # agregar aquí lo que pasará al hacer click en el botón 'cogerCarta'
-        global carta_seleccionada, j, num_jugadores_juego, juego
+        global carta_seleccionada, j, num_jugadores_juego, juego, label_info_general
         accion = 'cogerCarta'
         if len(juego.getJugadores()[j].getMano()) == 10:
             juego.getJugadores()[j].añadirCarta(juego.getJugadores()[j].getCartaTirada())
             self.añadir_carta_adicional(juego.getJugadores()[j].getCartaTirada())
         else:
-            print('debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada')
+            texto = 'debes tener 10 cartas en tu mazo para poder arrastrar o coger la carta tirada'
+            label_info_general.config(text = texto)
+            self.root.after(4000, lambda: label_info_general.config(text = ''))
+
+    def mostrar_contador(self, numero_jugador):
+        global ventana, mensaje_label
+        ventana = tk.Tk()
+        ventana.title(f"Felicidades!!!")
+
+        frame = tk.Frame(ventana, padx=20, pady=20, height = 300, width = 800)
+        frame.pack()
+
+        mensaje_label = tk.Label(frame, text="")
+        mensaje_label.pack()
+
+        def cerrar_ventana():
+            global ventana
+            ventana.destroy()
+
+        def iniciar_cuenta_regresiva(n):
+            global ventana, mensaje_label
+            mensaje_label.config(text=f"Turno del jugador {n} en:")
+            ventana.update()
+
+            for i in range(5, 0, -1):
+                mensaje_label.config(text=f"Turno del jugador {n} en: {i} segundos")
+                ventana.update()
+                time.sleep(1)
+
+            ventana.after(0, cerrar_ventana)
+
+        iniciar_cuenta_regresiva(numero_jugador)
+        #ventana.mainloop()
 
 Apuntado('Classic')

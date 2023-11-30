@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import *
 from PIL import ImageTk
 from PIL import Image
@@ -52,12 +53,12 @@ class Apuntado:
 
         global frame_inferior, frame_superior, altura_seccion, ancho_seccion, frame_puntajes
         global label_carta_seleccionada, label_carta_seleccionada2, label_num_partida, label_num_jugador
-        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta
+        global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, botonCambiarCartas
 
         for widget in self.root.winfo_children():
             widget.destroy()
         # Configurar el frame superior (verde)
-        frame_superior = tk.Frame(self.root, bg="green", height=300, width=1300)
+        frame_superior = tk.Frame(self.root, bg="green", height=300, width=1300, bd=3, relief="solid")
         frame_superior.pack(fill="both", expand=True, padx=4, pady=4)
 
         # Configurar el frame inferior (gris)
@@ -66,24 +67,29 @@ class Apuntado:
 
         ### Labels
         # label de info partida
-        label_info_partida = tk.Label(frame_superior, bg='darkgray', text = 'Partida #', height=3, width=10)
-        label_info_partida.grid(row=0, column=0, padx=10, pady=(2,0))
+        label_info_partida = tk.Label(frame_superior, bg='darkgray', text='Partida #', height=3, width=10, bd=5, relief="solid")
+        label_info_partida.grid(row=0, column=0, padx=10, pady=(2, 0))
 
-        label_num_partida = tk.Label(frame_superior, bg='darkgreen', text = '1', height=3, width=10)
+        label_num_partida = tk.Label(frame_superior, bg='darkgreen', text = '1', height=3, width=10, bd=5, relief="solid")
         label_num_partida.grid(row=0, column=1, padx=10, pady=(2, 0))
 
 
         # label de jugador
-        label_info_jugador = tk.Label(frame_superior, text = 'Jugador #', bg='darkgray', height=3, width=10)
+        label_info_jugador = tk.Label(frame_superior, text = 'Jugador #', bg='darkgray', height=3, width=10, bd=5, relief="solid")
         label_info_jugador.grid(row=1, column=0, padx=10, pady=(2, 0))
 
-        label_num_jugador = tk.Label(frame_superior, text = 'nn', bg='darkgreen', height=3, width=10)
+        label_num_jugador = tk.Label(frame_superior, text = 'nn', bg='darkgreen', height=3, width=10, bd=5, relief="solid")
         label_num_jugador.grid(row=1, column=1, padx=10, pady=(2, 0))
 
+
         ### Botones
+        # Boton de Cambiar Cartas
+        botonCambiarCartas = tk.Button(frame_superior, text='Cambiar Cartas', bg="gray", bd=5, height=1, width=15, command=self.habilitarCampos)
+        botonCambiarCartas.grid(row=4, column=0, padx=10, pady=10, sticky="sw") # rowspan=2,
+
         # Boton de Ordenar Cartas
         botonOrdenar = tk.Button(frame_superior, text='Ordenar Cartas', bg="gray", bd=5, height=1, width=15, command=self.ordenarCartas)
-        botonOrdenar.grid(row=3, column=0, rowspan=2, padx=10, pady=10, sticky="sw")
+        botonOrdenar.grid(row=3, column=0, padx=10, pady=10, sticky="sw") #rowspan=2,
 
         # Botón de Tirar
         botonTirar = tk.Button(frame_superior, text='Tirar', bg="gray", bd=5, height=3, width=10, command=self.tirar)
@@ -115,6 +121,50 @@ class Apuntado:
         self.center_window(self.root, 1300, 500) # Centrar la ventana en la pantalla
 
         self.comenzarNuevoJuego()
+    
+    def habilitarCampos(self):
+        '''se crean las dos listas desplegables para que el usuario ingrese las cartas que quiere intercambiar 
+        de su mano, y el boton 'swap', que llama al metodo para intercambiar las cartas seleccionadas'''
+
+        global lista_desplegable1, lista_desplegable2, botonSwap, juego, j, habilitar, botonCambiarCartas
+
+        botonCambiarCartas.config(state="disabled")
+        habilitar = True
+        valores = list(range(1, (len(juego.getJugadores()[j].getMano()) + 1)))
+        lista_desplegable1 = ttk.Combobox(frame_superior, width = 3, values=valores, state="readonly")
+        lista_desplegable1.set(valores[0])  # Establece el valor predeterminado
+        lista_desplegable1.grid(row=4, column=1, padx=10, pady=10, sticky="sw")
+
+        # lista 2
+        # Listas Desplegables cambiar cartas
+        valores = list(range(1, (len(juego.getJugadores()[j].getMano()) + 1)))
+        lista_desplegable2 = ttk.Combobox(frame_superior, width = 3, values=valores, state="readonly")
+        lista_desplegable2.set(valores[0])  # Establece el valor predeterminado
+        lista_desplegable2.grid(row=4, column=2, padx=10, pady=10, sticky="sw")
+
+        # Boton de Cambiar Cartas
+        botonSwap = tk.Button(frame_superior, text='Swap', bg="gray", bd=5, height=1, width=15, command=self.swap)
+        botonSwap.grid(row=4, column=3, padx=10, pady=10, sticky="sw")
+
+        '''lista_desplegable1["state"] = "disabled"
+        lista_desplegable2["state"] = "disabled"'''
+
+    def swap(self):
+        global juego, j, habilitar, botonCambiarCartas
+        
+        valor_seleccionado_1 = int(lista_desplegable1.get())
+        valor_seleccionado_2 = int(lista_desplegable2.get())
+
+        juego.getJugadores()[j].modificarMano((valor_seleccionado_1 - 1), (valor_seleccionado_2 - 1))
+
+        # se eliminan los objetos de cambiar cartas
+        lista_desplegable1.destroy()
+        lista_desplegable2.destroy()
+        botonSwap.destroy()
+        habilitar = False
+
+        botonCambiarCartas.config(state="normal")
+        self.mostrar_cartas_jugador(juego.getJugadores()[j], True)
 
     def comenzarNuevoJuego(self):
         '''se crea un juego (por defecto de 5 jugadores), y se randomiza el orden de la lista de jugadores'''
@@ -258,7 +308,7 @@ class Apuntado:
         if jugador.getCartaTirada() != None and not orden: # se pone en el frame superior la carta que le tiraron anteriormente
             
             subframeCartaTirada = tk.Frame(frame_superior, bg="darkblue", height=altura_seccion, width=ancho_seccion)
-            subframeCartaTirada.grid(row = 0, column=8, rowspan=2, sticky="e", padx=10, pady=(5, 0))  # se alinean los subframes uno al lado del otro
+            subframeCartaTirada.grid(row = 0, column=8, rowspan = 5, sticky="e", padx=10, pady=(15, 0))  # se alinean los subframes uno al lado del otro
         
             # Cargar la imagen
             imagen_path = f'Src/img/{self.__estiloCartas}/{jugador.getCartaTirada().getPinta()}/{jugador.getCartaTirada().getPinta()}{jugador.getCartaTirada().getDenominacion()}.png' 
@@ -272,6 +322,7 @@ class Apuntado:
             label_cartaTirada.image = imagen  # Mantener una referencia a la imagen
             label_cartaTirada.config(image=imagen)  # Configurar la imagen en el botón
             label_cartaTirada.pack(fill="both", expand=True)
+
 
         else:
             if not turno1: # verificar esto
@@ -352,16 +403,19 @@ class Apuntado:
 
         global botonTocar, botonBajarse, carta_seleccionada, label_carta_seleccionada, botones
         for b in botones: # para que al dar click en una carta, esta tenga un marco rojo
-            if str(b.cget("image")) == str(imagen):
+            if str(b.cget("image")) == str(imagen): # and carta != carta_seleccionada
                 b.config(bg="red", bd=7)
             else:
                 b.config(bg="green", bd=3)
         
-        botonBajarse.config(state=tk.DISABLED) # Cambiar el color de fondo y borde del botón bajarse
+        #botonBajarse.config(state=tk.DISABLED)
 
         #label_carta_seleccionada.config(image=imagen)
 
         carta_seleccionada = carta
+
+    def cambiarCartas(self):
+        pass
 
     
     def ordenarCartas(self):
@@ -379,6 +433,18 @@ class Apuntado:
 
 
     def siguienteTurno(self, jugador):
+        global lista_desplegable1, lista_desplegable2, botonSwap, habilitar, turno1
+
+        # se eliminan los objetos de cambiar cartas
+        if not turno1:
+            if habilitar: # habilitar es para verificar si el jugador dio click en el botón de intercambiar cartas, y si es así, se eliminan las listas desplegables y el boton
+                lista_desplegable1.destroy()
+                lista_desplegable2.destroy()
+                botonSwap.destroy()
+                habilitar = False
+                turno1 = False
+
+        botonCambiarCartas.config(state="normal")
         self.mostrar_cartas_jugador(jugador, False)
 
     def tirar(self):
@@ -424,20 +490,11 @@ class Apuntado:
 
     def tocar(self):
         # agregar aquí lo que pasará al hacer click en el botón 'tocar'
-        global carta_seleccionada
+        global juego, j, partida
         accion = 'tocar'
+        carta1, carta2 = juego.getJugadores()[j].getMano()[0], juego.getJugadores()[j].getMano()[1]
+        #if partida.getDealer().validarTocar(juego.getJugadores()[j], carta1, carta2)
         pass
-        
-    def validadorBajarse(self):
-        '''acá se implementará la lógica para validar cuando el jugador puede bajarse y cuando todavía no'''
-        global juego, j
-
-        if len(juego.getJugadores()[j].getMano()) == 10:
-            ### implementar aquí toda la lógica de los casos en los que el jugador se puede bajar
-            return True
-        else:
-            print("debes tener 10 cartas para bajarte")
-            return False
 
     def bajarse(self):
         '''acá se actualizará el valor del puntaje de cada uno de los juagdores, y se comenzará una nueva partida

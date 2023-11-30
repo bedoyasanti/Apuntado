@@ -2,20 +2,15 @@ from tkinter import *
 from tkinter import ttk
 from Main import Apuntado
 from Src.Packages.Usuario import Usuario
+from tkinter import messagebox
 
 class Previous:
     def __init__(self, user: Usuario):
         self.estiloCartas = "Classic"
         self.usuario = user
 
-        with open("Src\Packages\Registros.txt") as Registro:
-            reader = Registro.readlines()
-        
-        reader = [line.replace("\n", "") for line in reader]
-        
-
         self.root = Tk()
-        self.root.title(f"Apuntado")
+        self.root.title(f"Apuntado - {user.getNombre()}")
         self.root.geometry("800x400")
         self.notebook = ttk.Notebook(self.root)
 
@@ -81,15 +76,10 @@ class Previous:
         CartasDescriptionLbl = Label(self.frameCartas, text = "Aquí puedes cambiar el estilo\na tus cartas", font = ("Times", 9), bg = "#007b00", fg = "#b4ff9a")
         CartasDescriptionLbl.pack(fill = X, pady = (10,5))
 
-        Cartas1Btn = Button(self.frameCartas, text = "Visualizar Estilos", font = ("Fixedsys"), relief = GROOVE, bg = "#005c00", cursor = "hand2", activebackground = "#006600", command = self.verEstilos)
-        Cartas1Btn.pack(side = LEFT, pady= 10)
-        Cartas1Btn.bind("<Enter>", lambda event: self.onhover(Cartas1Btn))
-        Cartas1Btn.bind("<Leave>", lambda event: self.outhover(Cartas1Btn))
-
-        Cartas2Btn = Button(self.frameCartas, text = "Cambiar", font = ("Fixedsys"), relief = GROOVE, bg = "#005c00", cursor = "hand2", activebackground = "#006600", command = self.cambiarEstilo)
-        Cartas2Btn.pack(side = RIGHT, pady = 10)
-        Cartas2Btn.bind("<Enter>", lambda event: self.onhover(Cartas2Btn))
-        Cartas2Btn.bind("<Leave>", lambda event: self.outhover(Cartas2Btn))
+        CartasBtn = Button(self.frameCartas, text = "Cambiar estilo", font = ("Fixedsys"), relief = GROOVE, bg = "#005c00", cursor = "hand2", activebackground = "#006600", command = self.cambiarEstilo)
+        CartasBtn.pack(fill = X, pady= 10)
+        CartasBtn.bind("<Enter>", lambda event: self.onhover(CartasBtn))
+        CartasBtn.bind("<Leave>", lambda event: self.outhover(CartasBtn))
 
         self.frameCartas.pack(side = LEFT, padx=(150,0))
 
@@ -121,17 +111,31 @@ class Previous:
         self.root.mainloop()
 
     def jugarSolitario(self):
-        pass
+        messagebox.showinfo("Info importantisima", "Estamos actualmente en construcción de este apartado")
     
     def jugarMultijugador(self):
         Apuntado(self.estiloCartas)
         self.root.destroy()
 
-    def verEstilos(self):
-        pass
-
     def cambiarEstilo(self):
-        pass
+        def aceptar():
+            Estilo = lista_cartas.get()
+            if Estilo == "Classic":
+                self.estiloCartas = "Classic"
+            elif Estilo == "Not classic":
+                self.estiloCartas = "Unlockable"
+            root.destroy()
+        root = Tk()
+        root.title("Personalización de cartas")
+        opcionesLbl = Label(root, text = "Qué estilo de carta te interesa?")
+        opcionesLbl.pack(pady = (10,0), padx = 10)
+        opciones = ["Classic", "Not classic"]
+        lista_cartas = ttk.Combobox(root, values=opciones, state="readonly")
+        lista_cartas.set(self.estiloCartas)
+        lista_cartas.pack(pady=5,padx=10)
+        aceptarBtn = Button(root,text = "Aceptar", command = aceptar)
+        aceptarBtn.pack(pady = (0,10))
+        root.mainloop()
 
     def comprarTokens(self):
         def aceptar():
@@ -143,15 +147,15 @@ class Previous:
         cont1 = Frame(root)
 
         CTQ = Label(cont1, text = "Cuantos tokens quieres?")
-        CTQ.pack(side = LEFT)
+        CTQ.pack(side = LEFT, padx = (10,0))
         
         spinbox = Spinbox(cont1, from_= 10, to=500, increment=10, width=5)
-        spinbox.pack(side = RIGHT)
+        spinbox.pack(side = RIGHT, padx = (0, 10))
 
-        cont1.pack(pady = (30,0))
+        cont1.pack(pady = (10,0))
 
         Aceptarbtn = Button(root, text = "Aceptar", command=aceptar)
-        Aceptarbtn.pack(pady = 20)
+        Aceptarbtn.pack(pady = 10)
 
         root.mainloop()
 
@@ -161,5 +165,3 @@ class Previous:
 
     def outhover(self, btn: Button):
         btn["bg"] = "#005c00"
-
-

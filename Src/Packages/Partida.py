@@ -18,6 +18,9 @@ class Partida:
     def getMazo(self):
         return self.__mazo
 
+    def setMazo(self, mazo_nuevo : dict()):
+        self.__mazo = mazo_nuevo
+
     def getDealer(self):
         return self.__dealer
     

@@ -4,6 +4,7 @@ from tkinter import messagebox
 from Prev import Previous
 from Src.Packages.Usuario import Usuario
 from datetime import date
+from Prev import Previous
 
 class Login:
     def __init__(self):
@@ -19,7 +20,7 @@ class Login:
             fecha = date(int(f[2]), int(f[1]), int(f[0]))
             contraseña = u[3]
             tokens = int(u[4])
-            self.__registro.append([Usuario(nickname, nombre, fecha, contraseña, tokens)])
+            self.__registro.append(Usuario(nickname, nombre, fecha, contraseña, tokens))
 
         self.root = Tk()
         self.root.title("Login")
@@ -72,13 +73,19 @@ class Login:
         # Verificación de credenciales de usuario
         Nick = self.Nicktxt.get()
         Pwd = self.Pwdtxt.get()
-        try:
-            for usuario in self.__registro:
-                pass
-        except:
-            self.Id.set("")
-            self.Pwd.set("")
-            messagebox.showerror(message="Porfavor introduzca usuario y contraseña válidos", title="Error")
+        exist = False
+        for usuario in self.__registro:
+            if usuario.getNick() == Nick:
+                exist = True
+                break
+        if exist:
+            if usuario.getContraseña() != Pwd:
+                messagebox.showerror(message="Contraseña incorrecta", title="Error")
+                self.Pwd.set("")
+            else:
+                Previous()
+        else:
+            messagebox.showerror(message="Usuario no registrado", title="Error")
 
     def registrar(self):
         pass

@@ -6,7 +6,6 @@ class Usuario:
         self.__nick = nickname
         self.__contraseña = contraseña
         self.__fechaNacimiento = fechaNacimiento
-        self.__edad = datetime.now().date().year() - fechaNacimiento.year - ((datetime.now().date().month, datetime.now().date().day) < (fechaNacimiento.month, fechaNacimiento.day))
         self.__tokens = tokens
 
     def getNombre(self):
@@ -15,5 +14,9 @@ class Usuario:
     def getNick(self):
         return self.__nick
     
+    def getContraseña(self):
+        return self.__contraseña
+    
     def getTokens(self):
         return self.__tokens 
+    

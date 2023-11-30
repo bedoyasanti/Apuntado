@@ -367,12 +367,21 @@ class Apuntado:
         global label_carta_seleccionada, label_carta_seleccionada2, botones, cartas
         global botonTirar, botonArrastrar, botonTocar, botonBajarse, botonCogerCarta, ordenar
 
-        ### habilitar todos los botones
-        botonTirar.config(state=tk.NORMAL)
-        botonArrastrar.config(state=tk.NORMAL)
-        botonTocar.config(state=tk.NORMAL)
-        botonBajarse.config(state=tk.NORMAL)
-        botonCogerCarta.config(state=tk.NORMAL)
+        if len(juego.getJugadores()[j].getMano()) == 10:
+            ### habilitar todos los botones
+            botonTirar.config(state=tk.NORMAL)
+            botonArrastrar.config(state=tk.NORMAL)
+            botonTocar.config(state=tk.NORMAL)
+            botonBajarse.config(state=tk.NORMAL)
+            botonCogerCarta.config(state=tk.NORMAL)
+            botonCambiarCartas.config(state=tk.NORMAL)
+        else:
+            ### habilitar todos los botones
+            botonTirar.config(state=tk.NORMAL)
+            botonArrastrar.config(state=tk.NORMAL)
+            botonTocar.config(state=tk.NORMAL)
+            botonBajarse.config(state=tk.NORMAL)
+            botonCogerCarta.config(state=tk.NORMAL)
 
         mano_jugador = jugador.getMano()
 

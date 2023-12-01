@@ -114,8 +114,9 @@ class Previous:
         messagebox.showinfo("Info importantisima", "Estamos actualmente en construcción de este apartado")
     
     def jugarMultijugador(self):
-        Apuntado(self.estiloCartas)
         self.root.destroy()
+        Apuntado(self.estiloCartas)
+        
 
     def cambiarEstilo(self):
         def aceptar():
